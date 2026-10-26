@@ -220,3 +220,43 @@ After completing a meaningful batch:
 - finish DoD updates
 - propose "prepare commit"
 - do not start unrelated new feature work unless explicitly requested
+
+## Design Review Comment Area
+
+Every design document under `docs/ai/<DOMAIN>/` follows these rules.
+
+### Title numbering (required)
+
+- The H1 title starts with the Feature ID, e.g. `# CORE-F01 Framework Layering and Cross-Block Contracts`.
+- Every section and subsection heading carries a number (`## 5 ...`, `### 5.3 ...`) so reviewers can point at a location instead of quoting prose.
+- Contract items inside a design may carry their own stable labels (for example `C11`); cross-references between documents use the Feature ID plus the section number.
+
+### Required closing sections
+
+A design document is not reviewable until it ends with both:
+
+1. **Open questions** — numbered `Q1..Qn`; each entry states the options and a recommendation with one line of reasoning.
+2. **Design review — author comments** — the table below, included empty.
+
+```markdown
+| # | Location (section / inline reference) | Author comment | Rationale (filled by the designer) | Disposition (accept / rebut + reason / open question Qn) |
+|---|--------------------------------------|----------------|-----------------------------------|---------------------------------------------------------|
+|   |                                      |                |                                   |                                                         |
+```
+
+### Division of labour
+
+- The **author** writes only two columns: *Location* and *Author comment*. A one-line objection is enough; no rationale and no proposed fix is required.
+- The **designer** fills *Rationale* (why the design says what it says: contract clause, platform fact, external precedent, cost trade-off) and *Disposition*.
+- The author then re-reads only the rows whose disposition is *rebut* or *open question*.
+
+### Disposition is three-way
+
+Exactly one of:
+
+- **Accept** — the document is changed accordingly.
+- **Rebutt + reason** — the document stands; the reason must be concrete (a violated constraint, a measured cost, an engine fact), never "it feels cleaner".
+- **Convert to an open question** — recorded as a new `Qn` in the open-questions section, with the blocking condition stated.
+
+A row without a disposition is an unfinished review; a review is complete only when every row has one.
+
