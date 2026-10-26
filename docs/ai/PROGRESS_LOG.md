@@ -48,4 +48,4 @@
   - 未执行构建与测试：当前验证基线仍为 docs-only
 - 下一步：
   - 等待作者在第 11 节填写评审意见；设计者回填判断依据与处理结论
-  - CORE-F02 ~ CORE-F07 按总纲契约逐份撰写；INFRA-F01 待 CORE-F01 评审通过后执行，届时验证基线升级为 tests-required
+  - CORE-F02 ~ CORE-F07 按总纲契约逐份撰写；INFRA-F01 待 CORE-F01 评审通过后执行，届时验证基线升级为 tests-required\n## 2026-10-26（设计评审周期：六份 spec 成文与跨文档收敛）\n\n- 范围：CORE 域七份设计文档（总纲 CORE-F01 + 六份 Feature Spec），无代码。\n- 产出：\n  - CORE-F01 总纲（契约 C1..C48）与六份 spec（K 契约共 160 条），全部含「可检验」判据\n  - 每份文档末尾有编号化待决问题与作者评审意见表（作者只填位置 + 意见）\n- 过程：\n  - 四路只读调研：minEngine 基建事实、minCraft gameplay 先例、外部经验（Lyra / 图模型 / 事件总线）、旧项目 CardGameDemo 的 GAS 复刻\n  - 总纲 R2 修订 12 条（含与引擎事实冲突的 C24、C11 决策状态、C48 属性单一数值类型）\n  - 只读跨文档审查：6 阻塞 / 9 需修 / 5 建议\n  - 七份文档 R3 定点修订；两处作者裁定：实例类归 CORE-F03、去抖键固定 (对象, 通道)\n  - 终验统一了四个跨文档口径：内容引用编码 MGFContentIdRef、去抖键、实例类归属、施加上下文 payload 改名 contentHint\n- 验证：\n  - 章节完整、契约编号连续无重排、无占位符\n  - 引擎符号在六份 spec 的核心层描述中可被 grep 判别（注释规范与禁 ID 遵守）\n- 下一步：\n  - 作者评审七份文档；通过后启动 Wave1（INFRA-F01 工程骨架 + Framework + Content + Attributes）\n
