@@ -19,5 +19,10 @@
   - 源码注释用英文 Doxygen 风格，且禁止出现 Feature / Slice / Bug / ADR 编号与设计章节号
 - 验证：
   - 文档自检：占位符扫描、命名与 ID 合规、交叉引用指向真实路径、模板文件与上游逐字节一致
+- 版本控制：
+  - 本仓此前不是 git 仓库；本次 `git init`（默认分支 `main`），远端 `origin` 设为
+    `https://github.com/Max1122Chen/minGameplayFramework.git`，初始化提交已推送
+  - 加入 `.gitattributes`（`* text=auto eol=lf`）并标记常见二进制类型，
+    消除 Windows 检出时的整文件换行假 diff
 - 下一步：
   - 起草 CORE 域第一份设计文档（框架分层与通用契约），评审通过后登记 Feature
