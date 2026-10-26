@@ -39,6 +39,7 @@
 - **网络复制与预测**：不做 replication、不做客户端预测、不做回滚。执行模型沿用总纲的单线程同步假设。
 - **伤害公式与战斗规则**：暴击、抗性、护甲穿透都是内容的组合，不是框架规则；框架**不内置任何具体公式**，也不提供「公式插件点」。
 - **存档槽、读档恢复剩余时长、跨版本效果迁移**（C15）：本版不持久化效果集合，读档后效果由上层重建。
+- **跨存档的持续效果（buff）不在本框架保证范围**（C11）：持久化形状不含效果实例集合与修饰器集合，因此读档后 current 必然等于 base；需要「读档后 buff 仍挂着」的业务，由上层在读档完成后按需重新施加（重新施加会分配新的施加序号，这段时序不在本框架内）。能力侧施加的持续效果同样适用——能力不携带「哪个 buff 还挂着」的跨存档状态，读档后由上层重新施加（与 CORE-F07 的边界一致）。
 - **暂停 / 倍速 / 多时间源**：V1 只有一个推进源；引入第二个时间源时才需要新的驱动者，语义不变（见 4.7）。
 - **周期性结算（period）**：本版不做。它需要「同一效果多次结算 + 每次结算独立原子边界」的新语义，见第 11 节 Q9。
 - **数值显示格式化与 UI 绑定**：框架只给数值与变更通知，不给展示层约定。
@@ -91,7 +92,7 @@ struct MGFAttributeEntry {
 
 **为什么增量表与属性容器是同一个东西而不是两层。** 持久化文档里的「tag 键的增量属性表」（C5/C11）在运行期就是容器 base 隔间的覆盖层：一条增量条目存在的意义是「这个属性的 authored 值被改写成 X」。如果把它做成第二张表，同一次「把 Health 设为 120」就有两个入口、两份可写状态，任何一处漏写都会让 C31 的单真值归属表同时指向两个持有者，而 C29 也无法再断言「每个状态只有一个写入点」。因此：
 
-- **增量表是 base 隔间的持久化投影，不是第二份状态。** 容器 base 是「定义默认 ← 增量条目」的物化结果，本身也是可重算的派生值。
+- **增量表是 base 隔间的持久化投影，不是第二份状态。** 容器 base 是「定义默认 ← 增量条目」的物化结果，本身也是可重算的派生值。这条消歧已写进 CORE-F01 第 5 节 C5 的正文，形状定义以该条为准；本节只补充「为什么不能做成两张表」的判断。
 - **属性值本身不全部可持久化。** 只有增量条目（覆盖）落盘；`current`、修饰器集合、效果实例集合都不落盘。理由：`current` 是纯派生（C6/C11），而修饰器集合与效果实例携带施加上下文（instigator/source 等运行期对象引用），无法安全跨会话重建，且 C11 的文档形状里没有这一段。
 - 于是「读档后 current 从哪来」有唯一答案：**从 base 重聚合**。读档时没有效果，所以 current 等于 base；这是自洽的，不是特例。
 
@@ -221,8 +222,10 @@ float aggregate(const MGFAttributeEntry& entry, const MGFAttributeSnapshot& snap
 
 **效果是内容定义，不是内联结构。** 一份 `EffectDef` 是内容注册表里的一族定义（`kind` 为效果种类的 ContentId），施加时按 ContentId 引用：
 
-- 与 CORE-F03 的关系：`EffectDef` 是 ContentDef 的一个族（与物品、图节点 payload 同层），**由 CORE-F03 提供内容 id、注册表、装载校验与包闭包**；本 spec 只定义 `EffectDef` 的字段语义与它会引发的装载期问题种类。
-- 施加入口的形状因此是「按 ContentId + 上下文施加」，不是「传一个结构体进去」。这样效果数据可以只改数据不重编（C7），且效果可被图节点 payload、物品定义、能力定义按 C2 以 id 引用。
+- 与 CORE-F03 的关系：`EffectDef` 是 ContentDef 的一个族（与物品定义同层；图节点 payload 不是内容定义、也不是 ContentId 引用，见 CORE-F05 K7），**由 CORE-F03 提供内容 id、注册表、装载校验与包闭包**；本 spec 只定义 `EffectDef` 的字段语义与它会引发的装载期问题种类。
+- **字段归属于本 spec**：`EffectDef` 的全部字段——含 `MGFModifierDef` 数组、生命周期、层数与重施加、四组 tag——由本 spec 定义，运行期类型也由本 spec 拥有。CORE-F03 只登记「效果」这个 kind 名，并提供注册表、装配与装载校验的**机制**，**不定义效果字段、不引用本 spec 的任何类型**。
+- **修饰器集合不是片段（由此排除的做法）**：把修饰器列表做成 CORE-F03 的片段，会迫使片段机制认识 `MGFModifierDef`，与「不依赖本 spec 任何类型」的声明直接冲突；而且修饰器的运算、幅度与阶段词汇全是数值核知识，放进内容定义族会让这套词汇的权威分裂成两处。因此效果定义的字段表只出现在本文档（第 6 节），F03 的片段表里不出现任何效果字段。
+- 施加入口的形状因此是「按 ContentId + 上下文施加」，不是「传一个结构体进去」。这样效果数据可以只改数据不重编（C7），且效果可被图节点 payload 里的内联 id 字段、物品定义、能力定义按 C2 以 id 引用（payload 本身是节点内联对象，只有它内部的 id 字段引用内容，见 CORE-F05 K7）。
 - **唯一的例外是运行期合成效果**：由代码（能力、脚本、测试）构造的临时效果。它**形态与定义相同**（同一套修饰器/生命周期/层数描述），但**不进注册表、不进持久化、不参与包闭包检查**，其 id 为空并在调试期打标记录来源。这不是第二条语义，只是同一个描述类型的第二个来源。
 
 `EffectDef` 的字段划分见第 6 节（C9 的落点：修饰器列表必须是 Instanced 对象数组，不能是 `ME_STRUCT` 数组）。
@@ -306,13 +309,19 @@ MGFProblemList Advance(MGFAdvanceUnitTag unit_key, int delta_units);
 | source | 承载效果的来源实体（提供 AttributeBased 的 Source 取值域，可为空） |
 | target | 效果宿主 |
 | setByCaller | tag 键到 float 的冻结表，供 SetByCaller 幅度取值 |
-| payload | 可选的内容 id（C2），用于效果内部再引用内容（例如「施加时附带哪个子效果」）；**不携带任意对象指针** |
+| contentHint | 可选的内容 id（C2），用于效果内部再引用内容（例如「施加时附带哪个子效果」）；**不携带任意对象指针** |
 
 施加上下文里只有实体引用与内容 id，**没有可变的业务结构**（否则冻结不成立，重聚合不再是纯函数）。
 
+`contentHint` 是内容 id 上的可选提示：它与图节点 payload（CORE-F05 的内联对象）同名不同物，故不共用 payload 一词——那一词在本仓是主语义（引用面大），这一个字段改名成本更低，也避免读者以为施加上下文能携带节点内联对象。
+
+`cause`（来源标识）不是第六元组：它是入口参数上的值类型（instigator、source、可选追溯 tag），施加时被拆进上表的 instigator / source；追溯 tag 只留在效果实例上供审计与日志，不参与数值、不落盘。接口形态见 9.4。
+
 ### 4.10 层数（Stacking）
 
-效果的层数是效果实例上的一个整数，配合三个数据字段：
+效果的层数是效果实例上的一个整数字段，配合三个内容定义（`EffectDef`）里的字段。
+
+**层数与层数上限不是属性（C48）。** 它们放在内容定义与效果实例里，正因为属性值只有 `float` 一种类型：若把「最多叠 3 层」写成属性，判满就要做浮点比较（`2.9999999` 算不算满），等于在数值核里再引入一套整数语义。同样的理由适用于槽数、容量与次数类上限（见 5.1 的 C48 边界）。
 
 | 字段 | 语义 |
 | --- | --- |
@@ -418,13 +427,17 @@ MGFProblemList Advance(MGFAdvanceUnitTag unit_key, int delta_units);
 *细化 C5。*
 可检验：容器的公开字段表与三段一一对应（审查项）；用例：给实例增加一个新属性 tag 键不需要改容器类型。
 
-**K2 增量条目是 base 隔间的持久化投影，不是第二份状态。** 持久化只写增量条目（覆盖），运行期 base 由「定义默认 ← 增量条目」物化；改变 base 只有一条入口。
-*细化 C5 / C14。*
+**K2 增量条目是 base 隔间的持久化投影，不是第二份状态。** 持久化只写增量条目（覆盖），运行期 base 由「定义默认 ← 增量条目」物化；改变 base 只有一条入口。容器形状本身由 CORE-F01 第 5 节 C5 定义（该条已含「增量表即 base 隔间的持久化投影」的消歧），本文不重复定义，只保留本条的可检验判决点：base 的写入入口只有一个。
+*细化 C5（引用含 R2 消歧的版本）/ C14。*
 可检验：代码里不存在对「增量表」与「属性容器」分别提供的两个 set-base 入口（审查项 + 一条断言：base 写入路径计数为 1）；写入值为 0 的覆盖后往返，条目数不变且读到 0 而非默认值。
 
 **K3 值类型 V1 只有 float，且非有限值不得提交。** 每次提交前对全部候选值做有限性检查，任一非有限则整批放弃。
 *细化 C5（值类型）+ 采纳总纲 Q10 建议 a；定点化按 4.2.1 登记为技术债。*
 可检验：用例 `non_finite_candidate_aborts_whole_batch`（注入一个会产出无穷的修饰器，current 保持上一次值且返回问题项）；grep 属性值类型声明，只出现一个浮点类型别名。
+
+**C48 边界：整型语义的量不属属性。** 属性值只有 `float` 一种类型，下列量一律不做成属性，而是内容定义或实例状态里的整数字段：层数上限（`stackLimit`）、层数与剩余推进单元、槽位与容量（背包格数、装备槽、效果槽）、施加次数与各类计数上限。若业务确实需要「容量由属性驱动」（例如背包格数随某属性增长），必须走 C48 的**显式取整派生规则**：由内容声明取整方向（默认向零），并在派生处写清舍入方向；禁止隐式的 `float → int` 截断，因为截断方向不可见，且让同一条容量规则无法被审查。
+*细化 C48。*
+可检验：审查项——容器条目与实例状态里的这些字段类型都不是属性 tag；用例 `capacity_derivation_rounds_toward_declared_direction`（属性驱动的容量在 2.5 等边界值上按声明方向取整）；用例 `slot_count_is_not_an_attribute`（槽数来自内容整数字段，容器里查不到同名属性）。
 
 **K4 current 只由全量重聚合产生，禁止逆运算写入。** 全仓不得存在「把贡献扣掉」的路径（对 current 做减等于或除等于）。
 *细化 C6 / C29。*
@@ -504,12 +517,12 @@ MGFProblemList Advance(MGFAdvanceUnitTag unit_key, int delta_units);
 
 ### 5.4 层数与重施加
 
-**K22 层数的默认聚合是「每层独立贡献」；「幅度乘以层数」是显式开关，且两者对 Multiply 的结果不同（`m^n` 对 `m·n`）。**
-*细化 C6 + 总纲 Q4。*
+**K22 层数的默认聚合是「每层独立贡献」；「幅度乘以层数」是显式开关，且两者对 Multiply 的结果不同（`m^n` 对 `m·n`）。** 层数与层数上限是整数字段（实例状态与内容定义），不来自属性，也不参与浮点比较——层数只决定修饰器实例的条数（C48）。
+*细化 C6 + 总纲 Q4 + C48。*
 可检验：用例 `three_multiply_stacks_compound_not_linear`（m=1.1、3 层 → 1.331 而非 3.3）；用例 `stack_aggregation_switch_changes_value_but_not_set_shape`。
 
-**K23 重施加策略枚举里的每个值都必须有实现与用例；未实现的值不得出现在枚举里。**
-*细化 C17 / C8。*
+**K23 重施加策略枚举里的每个值都必须有实现与用例；未实现的值不得出现在枚举里。** `reapplyPolicy` 与 `stackAggregation` 是枚举字段、`stackLimit` 是整数字段，三者都定义在 `EffectDef` 里，不会随属性重聚合变化（C48）。
+*细化 C17 / C8 + C48。*
 可检验：枚举值与实现分支一一对应（审查项 + 用例逐个覆盖）；数据里写一个不在枚举里的策略名 → 装载失败且问题项给出该名字（不允许静默按默认处理）。
 
 **K24 移除后的 current 必须等于以剩余集合重聚合的结果；重复移除触发断言且不改变数值。**
@@ -553,7 +566,7 @@ MGFProblemList Advance(MGFAdvanceUnitTag unit_key, int delta_units);
 | id | ContentId（kind = 效果种类） | C1；加载期唯一性与字符合法性校验 |
 | modifiers | **Instanced 对象数组** | C9 落点：修饰器有多个字段，不能内联为 `ME_STRUCT`，必须是反射派生对象数组 |
 | duration | 枚举 + 秒（可选） | 只有 Duration 需要秒；Instant / Infinite 不读取该字段 |
-| stacking | stackLimit / reapplyPolicy / stackAggregation | 4.10 |
+| stacking | stackLimit（整数字段）/ reapplyPolicy / stackAggregation（枚举） | 4.10；三者都不是属性（C48） |
 | grantedTags / assetTags / ongoingTagRequirements / applicationTagRequirements | tag 名字数组 | C39 / C40：只写名字，载入后重建容器 |
 | 其他内容引用（如有） | ContentId | C2：禁止资产引用 |
 
@@ -561,7 +574,7 @@ MGFProblemList Advance(MGFAdvanceUnitTag unit_key, int delta_units);
 
 ### 6.2 运行期字段（不进 DataAsset，也不落盘）
 
-- 效果实例集合：EffectDef 的 ContentId、层数、剩余推进单元、冻结的 setByCaller 表、施加上下文、挂起标志、施加序号。
+- 效果实例集合：EffectDef 的 ContentId、层数、剩余推进单元、冻结的 setByCaller 表、施加上下文、挂起标志、施加序号，以及只用于审计的 cause 追溯 tag（同样不落盘）。
 - 属性容器的修饰器集合与 current 缓存。
 - 实例 revision 与待通知集合。
 
@@ -652,7 +665,7 @@ MGFProblemList Advance(MGFAdvanceUnitTag unit_key, int delta_units);
 
 ### 9.1 依赖方向
 
-- **本 spec 依赖**：CORE-F01（契约与分层）、CORE-F03（内容 id、注册表、EffectDef 作为内容定义一族的装载与校验）、CORE-F06（结算子系统所在的子系统宿主与 Variable 相位链）。
+- **本 spec 依赖**：CORE-F01（契约与分层）、CORE-F03（内容 id、注册表、「效果」kind 名的登记与装载校验机制；**不含效果字段定义**——字段与运行期类型都由本 spec 拥有，见 4.5）、CORE-F06（结算子系统所在的子系统宿主与 Variable 相位链）。
 - **本 spec 被依赖**：CORE-F03（实例状态文档要容纳属性增量条目）、CORE-F04（装备对属性的贡献走修饰器路径而不是直接改 base，见 9.2）、CORE-F07（能力通过施加/移除效果改变数值）、CORE-F05（图节点推进可触发一次施加，但不改数值规则）。
 - **禁止的反向依赖**：核心层的聚合函数不得调用注册表、资产、事件总线（C46）；适配层不得把结算规则复制一份（C4 / C29）。
 
@@ -681,6 +694,34 @@ MGFProblemList Advance(MGFAdvanceUnitTag unit_key, int delta_units);
 | CORE-F04 | 「装备提供的属性贡献」以修饰器形式进入容器，而不是直接改 base | 避免装备成为第二个 base 写入点 |
 | CORE-F07 | 施加 / 移除 / 叠层的调用方；消耗与冷却在拿到失败码后自行处理 | 5.3、5.4 |
 
+### 9.4 我向 CORE-F07 提供的接口（能力施加效果的唯一入口）
+
+CORE-F07 的 §9.2 向本 spec 索要三个接口：可施加查询、施加、cause 标识。本文档提供的**最终形态**如下（签名示意；F07 据此修订，若需要对象形态，二者只是一对成员函数，语义与批次边界不变）：
+
+```cpp
+// Sketch only; the final signature may differ.
+/// @brief Read-only verdict on whether the effects can be applied to the target.
+/// @param target Host entity of the effects.
+/// @param effect_ids Effect definitions to test, evaluated in order.
+/// @return Verdict carrying a reason code; nothing is created or mutated.
+MGFApplyVerdict CanApply(MGFEntityRef target, std::span<const MGFContentId> effect_ids);
+
+/// @brief Applies the effects in order; the only entry allowed to change attribute values.
+/// @param target Host entity of the effects.
+/// @param effect_ids Effect definitions to apply, applied in the given order.
+/// @param cause Traceable origin of this application; frozen into the effect context.
+/// @return Structured result; on failure no state has changed.
+MGFApplyResult Apply(MGFEntityRef target, std::span<const MGFContentId> effect_ids, MGFApplyCause cause);
+```
+
+三点说明：
+
+- **cause / 来源标识的形态**：`MGFApplyCause` 是值类型 { instigator 实体引用、source 实体引用、可选追溯 tag }。施加时 instigator / source 被冻结进 4.9 的五元组，追溯 tag 只留在效果实例上供审计与日志，**不参与数值、不落盘**（C11）。F07 的 `SourceToken` 已是值类型承载，可直接作为追溯 tag 的来源；若 F07 要保留自有类型，转换点就在调用处，本文档不为此引入第二个概念。
+- **序列的批次边界**：`Apply` 按给定顺序逐个施加，每个效果各自走一次结算批次（4.13），通知在帧末合并去抖（K26），因此调用方最多看到一次通知、只观察一个实例 revision 的推进。
+- **`CanApply` 与 `Apply` 共用同一判定函数**：前者是后者的只读投影，因此不存在「查询说可施加、施加却因准入失败」的偏差；`Apply` 仍可能因调用方违约（例如 SetByCaller 缺键）返回零状态变更的失败码。
+
+**为什么能力施加效果必须经此入口。** (1) current 只是重聚合的产物，任何直接写值都会让 4.14 的对账不可判定，并把写入点从一处变成多处（K4 / K25）；(2) 准入必须发生在任何状态变更之前（K21），只有入口能保证「先判后改」的次序，能力自己判自己改必然留下判与改之间的窗口；(3) 一个施加序列要在同一批次里推进 revision 并合并通知（K26），入口之外拿不到这个批次边界。这三条合起来就是 F07 §4.12 那条「handler 不允许持有属性写接口」的依据，也是一个可 grep 的审查项：能力的代码里不出现属性写入 API。
+
 ## 10 实现波次与验收判据
 
 ### 10.1 波次归属
@@ -693,7 +734,7 @@ MGFProblemList Advance(MGFAdvanceUnitTag unit_key, int delta_units);
 1. ctest 全绿，且下列用例存在并通过：K1–K30 每条至少一个用例（用例名是语义描述句，不含编号，C43）。
 2. 重聚合对账，按波次拆成两段（原因见 10.3）：
    - Wave1：aggregate_twice_yields_bitwise_identical_result 与 instant_effect_leaves_no_residue 全绿——只有 Instant 效果时「聚合是确定函数」与「瞬时效果不残留」是可测的全部内容。
-   - Wave4（有了 Duration 与层数之后）：reaggregation_after_effect_expiry_matches_fresh_container、removing_stacks_equals_reaggregation_without_them、inhibited_effect_contributes_nothing_but_keeps_stacks 全绿（这才是总纲 Wave1 判据 5 的完整语义）。
+   - Wave4（有了 Duration 与层数之后）：reaggregation_after_effect_expiry_matches_fresh_container、removing_stacks_equals_reaggregation_without_them、inhibited_effect_contributes_nothing_but_keeps_stacks 全绿（总纲 A12(a) 已把「施加—移除对账」整体移入 Wave4，这三条就是 Wave4 的对账判据；本 spec 不再声称它们是 Wave1 判据 5 的语义）。
 3. 可交换性：effect_apply_order_does_not_change_current_within_tolerance 与 cross_bucket_order_is_bitwise_stable 全绿，且用例里用相对误差比较。
 4. 只存增量：save_load_save_is_byte_identical_with_live_effects 全绿，且序列化文档的字段表里 grep 不到 current（C11）。
 5. 三级失败各有落点：装载期用例至少 6 个（未知属性 tag、未知阶段、Override 带阶段、未知重施加策略、非正时长、非法量子）；断言类用例至少 3 个（非有限候选、重复移除、Fixed 相位结算）；降级用例至少 1 个（NoOpEffect 且关闭降级开关后升为失败）。
@@ -701,15 +742,15 @@ MGFProblemList Advance(MGFAdvanceUnitTag unit_key, int delta_units);
 7. 核心层可迁移性：本 spec 的类型全部位于 mgf-core（属性值、修饰器、效果描述、聚合函数、问题种类），mgf-core 引擎符号 grep 为空（CORE-F01 的 4.2 检查项）。
 8. 相位：settlement_in_fixed_phase_asserts 全绿，且发布期配置（断言关闭）下返回失败码（C20）。
 
-### 10.3 与总纲 Wave1 判据 5 的张力（不自改总纲，提请作者裁定）
+### 10.3 与总纲 Wave1 判据 5 的对齐（已裁定，按 A12(a) 执行）
 
-总纲 Wave1 验收判据 5 写的是「施加与移除效果后当前值与从基值重算一致」，而总纲 Q5 建议 a 主张 Wave1 只做瞬时效果。瞬时效果不驻留，因此 Wave1 里**没有可被「移除」的对象**，该判据无法按字面执行。三条可选处置（不自行决定）：
+总纲原 Wave1 验收判据 5 写的是「施加与移除效果后当前值与从基值重算一致」，而总纲 Q5 建议 a 主张 Wave1 只做瞬时效果。瞬时效果不驻留，因此 Wave1 里**没有可被「移除」的对象**，该判据无法按字面执行。总纲 R2 修订的 A12(a) 已裁定：判据 5 改为「瞬时效果施加后 current 与从 base 重聚合一致」，「施加—移除对账」整体移入 Wave4。历史选项保留在线下，仅作记录：
 
 - (a) Wave1 纳入一个最小驻留形态（Duration 的最简实现，无层数、无阶段），使判据 5 可原样执行；
 - (b) 把判据 5 改写为「瞬时效果施加后 current 与从基值重算一致」，把「施加与移除」的对账整体推到 Wave4；
 - (c) 保留字面判据，但在 Wave1 用「施加 → 显式移除」的测试形态验证——这需要 Wave1 就有驻留效果，实际等同于 (a)。
 
-本 spec 的 §10.2 判据 2 按 (b) 拆分表述，因为它不改总纲且不引入半成品路径；若作者选 (a)/(c)，只需把 Wave4 的三条对账用例前移到 Wave1，其余契约不变。
+**裁定落地：** §10.2 判据 2 的拆分表述即 A12(a) 的形态（Wave1 只做「聚合是确定函数」与「瞬时效果不残留」，三条施加—移除对账用例归 Wave4），§10.1 的波次归属不变。若将来业务需要把驻留效果提前到 Wave1，只需把 Wave4 的三条对账用例前移，其余契约不变——但那要先改总纲的波次结构，不在本 spec 内决定。
 
 ## 11 待决问题
 
@@ -750,6 +791,31 @@ MGFProblemList Advance(MGFAdvanceUnitTag unit_key, int delta_units);
 **Q9 周期性结算（period）是否进 V1。** 选项：(a) 不做，重复结算由能力层「多次施加 Instant」表达；(b) 做 period 字段。
 建议 (a)。理由：period 会让「一次结算」的原子边界与「一帧内同一效果结算多次」耦合，需要新的推进规则（一帧内补算几次、欠账怎么算），而价值可以由 Instant 的组合表达。
 什么会推翻它：若出现必须在单个效果内表达「每 N 单位跳一次」的内容（例如持续伤害），且用能力层组合会造成效果数量爆炸。
+
+**Q10 cause 追溯标识是否进持久化与审计日志。** 选项：(a) 只留在运行期效果实例上，不落盘，日志打内容 id、target 与该 tag；(b) 落进持久化文档，读档后仍能追溯「这个 buff 是谁给的」。
+建议 (a)。理由：C11 的持久化形状里没有这一段，而 instigator / source 是运行期实体引用，跨会话本来就无法安全重建（与 Q3 同因）；把它降级成字符串 id 又会引入一个需要治理的新字符串词汇。
+什么会推翻它：出现「读档后必须知道某个持续效果的真实来源」的运营或反作弊需求，且来源能收敛为稳定的内容级标识。
+
+## 修订记录 R3
+
+本轮为对齐跨文档审查与总纲 R2 修订（A1–A12、新增 C48）的定点修订，未重排章节、未改动与审查项无关的段落。
+
+| 审查编号 | 改了什么 | 位置 |
+| --- | --- | --- |
+| A9 | K2 的细化标注改为引用含消歧的 C5，并声明容器形状以 C5 为准、本文只保留「base 单一写入入口」的判决点；4.1 补一句同样的指路句 | §4.1；§5.1 K2 |
+| A10 | 非目标显式加一条：跨存档的持续效果（buff）不在本框架保证范围，持久化形状不含效果实例集合与修饰器集合，读档后由上层按需重新施加 | §2.2 |
+| A11 / C48 | 明确层数上限、层数、剩余单元、槽数、容量、次数一律是内容定义或实例状态里的整数字段；§5.1 增「C48 边界」段，并规定属性驱动的容量必须走显式取整派生并注明舍入方向；K22、K23 与 6.1 的 stacking 行同步 | §4.10；§5.1；§5.4 K22/K23；§6.1 |
+| A12(a) | Wave1 判据 5 的张力标为已裁定：10.2 的括注改为「施加—移除对账已移入 Wave4」，10.3 改写为对齐说明并记录裁定落地形态 | §10.2；§10.3 |
+| B9 | 4.5 明确 `EffectDef` 全部字段（含 `MGFModifierDef` 数组）由本 spec 拥有，F03 只登记「效果」kind 名与注册表/装配/校验机制；并写明修饰器集合不能做成片段的理由；9.1 的依赖描述同步收窄 | §4.5；§9.1 |
+| D 表接口确认 | 新增 9.4：`CanApply` / `Apply` / `MGFApplyCause` 的最终形态、序列批次边界、「能力施加效果必须经此入口」的三条理由 | §9.4 |
+| B6 | 槽数与容量不属属性的边界落在 §5.1 的 C48 边界段；属性驱动容量须显式取整并注明舍入方向（无隐式截断） | §5.1 |
+| B23 | 非目标的那一条同时覆盖能力侧的持续效果，与 CORE-F07 的边界一致 | §2.2 |
+| 额外（随 D 表接口） | 说明 `cause` 不是第六元组，并写明 instigator/source 冻结、追溯 tag 不参与数值且不落盘 | §4.9；§6.2 |
+| 额外（随 D 表接口） | 新增 Q10：cause 追溯标识是否进持久化与审计日志 | §11 Q10 |
+| 终验命名（payload 让位） | 施加上下文五元组的 `payload` 字段改名为 `contentHint`（语义不变：可选的内容 id、不携带对象指针），并补一句术语说明：与图节点 payload（CORE-F05 的内联对象）同名不同物，不共用 payload 一词 | §4.9 |
+| 终验残留（payload 口径） | 4.5 的族表括注改为「与物品定义同层；图节点 payload 不是内容定义、也不是 ContentId 引用（CORE-F05 K7）」；同节的「效果可被图节点 payload 按 id 引用」改为「payload 里的内联 id 字段引用」，不再把 payload 当作内容定义 | §4.5 |
+
+未采纳或需上游再确认的项：无。B9 的落地需要 CORE-F03 撤回「修饰器集合作为片段」的设想，并保证 F03 的片段表与装载器不引用本文档的类型——这是 F03 侧的配合，本文档不代改。
 
 ## 12 评审意见（作者填写）
 
