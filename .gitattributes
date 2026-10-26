@@ -1,0 +1,18 @@
+# Normalize text files to LF so Windows checkouts do not produce
+# whole-file diffs. Binaries are marked so git never rewrites them.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.bmp binary
+*.dll binary
+*.exe binary
+*.lib binary
+*.pdb binary
+*.zip binary
+*.ttf binary
+*.wav binary
+*.fbx binary
