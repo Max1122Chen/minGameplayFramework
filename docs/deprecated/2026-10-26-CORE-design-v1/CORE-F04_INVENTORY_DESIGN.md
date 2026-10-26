@@ -1,3 +1,5 @@
+> **归档件（2026-10-26）**：本文件已作废，仅供追溯。它不是当前设计真相，不得作为实现依据或排期来源。见 docs/deprecated/README.md。
+
 # CORE-F04 背包（Inventory）
 
 > 状态：Draft
