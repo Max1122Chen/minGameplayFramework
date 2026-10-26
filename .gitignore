@@ -1,0 +1,50 @@
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editors / IDE
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.swp
+*~
+
+# Local / env
+.env
+.env.*
+!.env.example
+
+# Logs and temp
+*.log
+tmp/
+temp/
+
+# C++ build output
+build/
+out/
+bin/
+obj/
+lib/
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+*.exe
+*.pdb
+*.ilk
+*.exp
+CMakeCache.txt
+CMakeFiles/
+cmake-build-*/
+compile_commands.json
+*.ninja
+
+# Tooling caches
+.cache/
+__pycache__/
+.clangd/
+node_modules/

@@ -1,0 +1,91 @@
+---
+description: Source comments carry no Feature/Slice/Bug/ADR/TechDebt IDs, no design section numbers, and no pointers into collaboration docs; public contracts use English Doxygen.
+alwaysApply: true
+---
+
+# Code Comments: Local Truth Only
+
+## Why this rule exists
+
+A pointer in code to a document, an ID, or a commit is a reference that rots.
+IDs get archived, sections get renumbered, commits get rebased away. Once the
+pointer is wrong, the comment stops being information and becomes debt — the
+reader trusts it less than nothing. State the reason where it is read: in the code.
+
+## Rule
+
+In **source code** (any `.h` / `.hpp` / `.cpp` / `.inl` / test source; future `src/`, `Source/`, `tests/`):
+
+**Forbidden** in comments, log messages, and test-case names:
+
+- Feature / Slice / Bug / ADR / TechDebt IDs — `CORE-F01`, `CORE-F01-S02`, `ITEM-F03`, `TD-014`, `BUG-CORE-001`, `ADR-20261015-01`
+- bare slice tags used as prefixes or tags — `S01:`, `(S08)`, `design S02`, `F12`
+- design-document section numbers or handles — `§3.4`, `design §2.7`, `H8`, `layer 2`
+- requirement / acceptance-criteria labels — `O1`, `I1`, `Q3`
+- commit hashes
+- pointers into collaboration docs — `see ACTIVE_WORK`, `as decided in the design doc`, `see TECH_DEBT`
+
+Those identifiers belong in `docs/ai/` only.
+
+## Style: English Doxygen for contracts
+
+- Public API (exported types, functions, members whose contract a caller must know) uses `///` line comments; multi-line blocks use `/** ... */`.
+- Supported tags: `@brief`, `@param`, `@return`, `@warning`, and `@note` when needed.
+- Internal implementation notes use plain `//`.
+- Comment language is **English**, always — including log strings meant for maintainers.
+- Comment only what the code cannot say by itself: why, contract, invariants, preconditions, hazards, unusual trade-offs.
+
+## Do not annotate everything
+
+- **No per-field or per-method commentary is required.** A getter that returns `m_Size` needs no comment.
+- An obvious comment is noise: it teaches the reader to skip comments, which costs the whole file its voice. Delete it.
+- If a name does not express the intent, prefer renaming over commenting.
+
+## Counterexample → example
+
+### 1) A conditional whose reason was only written in a design doc
+
+```cpp
+// Bad: §H8 (ii): the checkbox binds the AUTHORED flag.
+// Implements the authoring rule; see CORE-F01-S02 in ACTIVE_WORK.
+if (node->IsCheckbox())
+    node->SetFlag(Flag::Authored);
+```
+
+Why it fails: `§H8 (ii)`, `CORE-F01-S02` and `ACTIVE_WORK` all point outside the
+file. A reader without the design doc learns nothing; a reader with an old one
+learns something wrong.
+
+```cpp
+// Example: the checkbox binds the authored flag, so switching an ancestor off
+// never rewrites the author's own choice.
+if (node->IsCheckbox())
+    node->SetFlag(Flag::Authored);
+```
+
+Why it works: the invariant is stated in domain language, inside the file that
+enforces it. It stays true after every renumbering.
+
+### 2) A test name that encoded a slice instead of the behaviour
+
+```cpp
+// Bad: the test name is a registry lookup key, not a description.
+TEST_CASE("CORE-F01-S02 overrides inherit") { ... }
+```
+
+Why it fails: the name says which slice wrote it, not what breaks when it fails.
+Renaming or archiving the slice makes the name meaningless, and a failing run
+tells nobody what behaviour regressed.
+
+```cpp
+// Example: the name states the observable behaviour that must hold.
+TEST_CASE("child override keeps ancestor default intact") { ... }
+```
+
+Why it works: the name is the specification of the failure. It needs no registry
+entry beside it, now or in two years.
+
+## Allowed elsewhere
+
+- Feature / Slice / Bug / ADR / TechDebt IDs in `docs/ai/**` (registry, ACTIVE_WORK, design, plan, progress, debt), in commit messages, and in PR text are correct and expected.
+- Log strings may use short gameplay labels; prefer no IDs there either.

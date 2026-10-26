@@ -1,0 +1,58 @@
+---
+description: Keep collaboration docs structured and discoverable.
+alwaysApply: true
+---
+
+# Docs AI Layout
+
+## Core file roles
+
+- `docs/ai/WORKFLOW_PROFILE.md` - deploy-time collaboration posture
+- `docs/ai/PROJECT_CONTEXT.md` - stable project snapshot
+- `docs/ai/BOOTSTRAP_DIGEST.md` - short session recovery
+- `docs/ai/WORKING_WITH_AI.md` - AI collaboration protocol
+- `docs/ai/ACTIVE_WORK.md` - active queue
+- `docs/ai/FEATURE_REGISTRY.md` - feature registration
+- `docs/ai/PROGRESS_LOG.md` - append-only factual history
+- `docs/ai/TECH_DEBT.md` - explicit debt
+- `docs/ai/templates/` - reusable doc templates
+- `docs/ai/templates/WORKFLOW_PRESETS.md` - preset catalog
+- `docs/ai/templates/DOC_GOVERNANCE.md` - gates, complexity levels, Definition of Done
+- `docs/ai/templates/DESIGN_PRINCIPLES.md` - structural principle card
+
+## Domain codes
+
+- This repo currently registers **only the `CORE` domain** (framework kernel and shared contracts).
+- Further domain codes (`ITEM`, `INVENTORY`, `ABILITY`, `ATTR`, …) are appended to `docs/ai/FEATURE_REGISTRY.md` when the first real requirement for them arrives. Never pre-declare a domain code, and never open an empty domain bucket under `docs/ai/`.
+
+## Naming guidance
+
+- Feature IDs: `DOMAIN-Fnn` (e.g. `CORE-F01`)
+- Slice IDs: feature ID plus `-Snn` (e.g. `CORE-F01-S01`)
+- Bug IDs: `BUG-DOMAIN-nnn` (e.g. `BUG-CORE-001`)
+- ADR IDs: `ADR-` + compact date + sequence (e.g. `ADR-20261026-01`)
+
+### Long-doc filenames (required, ALL CAPS)
+
+```text
+docs/ai/DOMAIN/FEATUREID_SLUG_DOCTYPE.md
+```
+
+- `DOCTYPE`: `DESIGN` | `IMPLEMENTATION` | `ROADMAP` | `REFACTOR_PLAN`
+- Entire filename is ALL CAPS
+- The feature-ID segment must match the registry ID (e.g. `CORE-F01_CORE_KERNEL_BOUNDARIES_DESIGN.md`)
+- ADR: `ADR-` + compact date + sequence, then `_SLUG.md`
+- Bug: `BUG-DOMAIN-nnn_SLUG.md` under `docs/ai/bugs/` or `docs/ai/DOMAIN/bugs/`
+
+## Placement rules
+
+- Design / Implementation / Roadmap / Refactor Plan / ADR docs **must** live under `docs/ai/DOMAIN/` (domain bucket = feature domain, ALL CAPS).
+- Do **not** put those long docs in the `docs/ai/` root.
+- `docs/ai/` root is reserved for core collaboration truth files only.
+- Template examples belong only under `docs/ai/templates/`.
+- Session notes are stored in `docs/ai/sessions/` when used.
+
+## Language
+
+- Core collaboration files under `docs/ai/` and these rules are inherited governance and stay in English.
+- Project-owned design and implementation docs are written in Chinese; identifiers, code, and quoted API names stay in their original form.
