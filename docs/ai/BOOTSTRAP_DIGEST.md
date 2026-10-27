@@ -51,8 +51,9 @@ Last updated: 2026-10-27
 
 ## 领域码
 
-- 已启用：`CORE`（预留）、`GPCONTENT`、`ITEM`、`INVENTORY`。
+- 已启用：`CORE`（预留）、`GPCONTENT`、`ITEM`、`INVENTORY`、`SKILL`。
 - 已落地：`GPCONTENT-F01` / `ITEM-F01` / `INVENTORY-F01`（Done）。
+- 活跃：`SKILL-F01`（SkillTree 示例，Review）。
 - 其他子系统码在首个真实需求出现时按 `FEATURE_REGISTRY.md` 追加；不得预置、不建空桶。
 
 ## 验证基线

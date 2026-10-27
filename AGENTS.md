@@ -13,7 +13,7 @@
 
 - 协作与规范文档已就绪；minEngine 产品工程已挂上（CMake、`Source/minGameplayFramework/`）。
 - **探索期工作流已翻转**：作者用伪代码 / 草稿代码表达设计；可落薄设计文档作执行参照；详细 why 写在代码注释里（代码即文档）。已归档的 CORE design v1 不得作实现依据（详见 `docs/ai/WORKING_WITH_AI.md`）。
-- 领域码：`CORE`（预留）、`GPCONTENT`、`ITEM`、`INVENTORY`；活跃递进见 `FEATURE_REGISTRY.md`。
+- 领域码：`CORE`（预留）、`GPCONTENT`、`ITEM`、`INVENTORY`、`SKILL`；活跃见 `FEATURE_REGISTRY.md`。
 
 ## 2. 目录与文件地图
 
@@ -175,7 +175,7 @@ TEST_CASE("child override keeps ancestor default intact") { ... }
 
 ### 领域码
 
-- 已注册：`CORE`（预留）、`GPCONTENT`、`ITEM`、`INVENTORY`。
+- 已注册：`CORE`（预留）、`GPCONTENT`、`ITEM`、`INVENTORY`、`SKILL`。
 - 其他子系统（ABILITY、ATTR 等）**在首个真实需求出现时**才追加，不得预置。
 - 追加规则：在 `FEATURE_REGISTRY.md` 的领域码表中登记；全大写；短；稳定（一旦有其他文档引用就不要改）；不建空桶。
 

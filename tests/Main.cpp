@@ -6,3 +6,4 @@
 #include "ItemInstanceTestCases.hpp"
 #include "SlotBasedInventoryTestCases.hpp"
 #include "GridBasedInventoryTestCases.hpp"
+#include "SkillTreeTestCases.hpp"

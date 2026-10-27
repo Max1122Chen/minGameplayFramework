@@ -89,3 +89,15 @@
 - 验证：`cmake --build build --target MGF_Tests`；`bin/MGF_Tests.exe` 相关用例通过
 - 验证基线：升为 `tests-required`（见 `WORKFLOW_PROFILE.md` / `PROJECT_CONTEXT.md` / `BOOTSTRAP_DIGEST.md`）
 - 下一步：SkillTree 示例正式化与反射挂接（工作区未纳入本次提交）
+
+## 2026-10-27（SKILL 域开启；SkillTree 正式化进 Review）
+
+- 范围：登记 `SKILL` / `SKILL-F01`；SkillTree 反射挂接；统一 Graph 仍 Deferred。
+- 完成：
+  - 领域码 `SKILL`；Feature `SKILL-F01` Status=Review
+  - 反射：`Skill` / `SkillTreeDefNode` / `SkillLearnContext` / `SkillTreeValidationError` 为 `ME_STRUCT`；
+    `SkillCatalog` / `SkillTreeDef` 为 `ME_CLASS`（DataAsset）；策略与错误码为 `ME_ENUM`；
+    Builder / Instance / InstanceNode 保持非反射运行时
+  - ACTIVE_WORK / BOOTSTRAP 同步
+- 验证：`MGF_Tests` 19/19 通过（含 skill tree）
+- 下一步：作者审阅通过 → prepare commit（不含统一 Graph）

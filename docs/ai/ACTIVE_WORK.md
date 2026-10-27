@@ -12,6 +12,8 @@
 
 | Priority | Feature ID | Slice ID | Status | Owner | Next action |
 |----------|------------|----------|--------|-------|-------------|
-| — | — | — | — | — | 队列暂空；下一批为 SkillTree 正式化（代码已在工作区，待登记与审阅） |
+| 1 | SKILL-F01 | — | Review | Max | 作者再审 SkillTree 反射版；通过后 prepare commit |
 
 已落地：`GPCONTENT-F01` / `ITEM-F01` / `INVENTORY-F01` → Done。
+
+统一 `GameplayDataGraph` 抽象仍 Deferred；先以具体树示例（SkillTree）定型。

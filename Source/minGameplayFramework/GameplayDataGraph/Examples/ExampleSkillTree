@@ -1,0 +1,82 @@
+# Example SkillTree (NOT compiled) — yaml-like sketch
+# Cost lives on tree nodes only. Skill catalog holds content/effects separately.
+#
+# Relationship sketch (prerequisites →, exclusive siblings ×):
+#
+#                    ┌─────────────────┐
+#                    │ Skill.BasicStrike│  cost 0, Always
+#                    └────────┬────────┘
+#           ┌─────────────┬───┴───┬─────────────┐
+#           ▼             ▼       ▼             ▼
+#   ┌──────────────┐ ┌────────┐ ┌────────┐ ┌────────┐
+#   │PowerStrike   │ │ Sweep  │ │ PathA  │×│ PathB  │
+#   │cost 1        │ │ cost 1 │ │ cost 1 │ │ cost 1 │
+#   │reveal: Any   │ │ reveal │ │ Stance │ │ Stance │
+#   └──────┬───────┘ └───┬────┘ └────────┘ └────────┘
+#          │             │      (exclusive group: only one)
+#          └──────┬──────┘
+#                 ▼
+#         ┌──────────────┐
+#         │ Skill.Ultimate│  needs Power AND Sweep
+#         │ cost 2, lvl10 │  reveal: WhenAllPrerequisitesMet
+#         └──────────────┘
+#
+# Learn order example: BasicStrike → PowerStrike + Sweep → Ultimate
+# Stance fork: after BasicStrike pick PathA XOR PathB.
+
+catalog:
+  - tag: Skill.BasicStrike
+    effects: [Effect.Damage.Melee]
+  - tag: Skill.PowerStrike
+    effects: [Effect.Damage.Melee.Heavy]
+  - tag: Skill.Sweep
+    effects: [Effect.Damage.AoE]
+  - tag: Skill.Ultimate
+    effects: [Effect.Damage.Ultimate]
+  - tag: Skill.PathA
+    effects: [Effect.Buff.A]
+  - tag: Skill.PathB
+    effects: [Effect.Buff.B]
+
+tree:
+  name: WarriorBasic
+  nodes:
+    - tag: Skill.BasicStrike
+      prerequisites: []
+      prereqPolicy: All
+      reveal: Always
+      level: 1
+      cost: 0
+
+    - tag: Skill.PowerStrike
+      prerequisites: [Skill.BasicStrike]
+      prereqPolicy: All
+      reveal: WhenAnyPrerequisitesMet
+      level: 3
+      cost: 1
+
+    - tag: Skill.Sweep
+      prerequisites: [Skill.BasicStrike]
+      prereqPolicy: All
+      reveal: WhenAnyPrerequisitesMet
+      level: 3
+      cost: 1
+
+    - tag: Skill.Ultimate
+      prerequisites: [Skill.PowerStrike, Skill.Sweep]
+      prereqPolicy: All
+      reveal: WhenAllPrerequisitesMet
+      level: 10
+      cost: 2
+
+    # Exclusive branch example (talent-like):
+    - tag: Skill.PathA
+      prerequisites: [Skill.BasicStrike]
+      exclusiveGroup: SkillTree.ExclusiveGroup.Stance
+      reveal: WhenAnyPrerequisitesMet
+      cost: 1
+    - tag: Skill.PathB
+      prerequisites: [Skill.BasicStrike]
+      exclusiveGroup: SkillTree.ExclusiveGroup.Stance
+      reveal: WhenAnyPrerequisitesMet
+      cost: 1

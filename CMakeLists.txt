@@ -61,6 +61,7 @@ add_library(${GAME_MODULE_NAME} SHARED
     "${GAME_MODULE_SRC_ROOT}/Inventory/Examples/SlotBasedInventories/SlotBasedInventory.cpp"
     "${GAME_MODULE_SRC_ROOT}/Inventory/Examples/CategoryBasedInventories/CategoryBasedInventory.cpp"
     "${GAME_MODULE_SRC_ROOT}/Inventory/Examples/GridBasedInventories/GridBaseInventory.cpp"
+    "${GAME_MODULE_SRC_ROOT}/GameplayDataGraph/Examples/SkillTree.cpp"
 )
 set_target_properties(${GAME_MODULE_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${EXECUTABLE_PATH}"

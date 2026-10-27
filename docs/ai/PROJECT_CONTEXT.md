@@ -26,7 +26,7 @@ Last updated: 2026-10-27
 
 - 协作骨架与 minEngine 产品工程已挂上；Content / Item / Inventory 正式化代码与测试已落地。
 - CORE design v1 已作废（见 `docs/deprecated/`）；工作流为**代码 / 伪代码先行 → 审批 → Doxygen → 设计文档**。
-- 下一批：SkillTree 等具体树示例（未纳入 Content/Inventory 提交）。
+- 下一批：`SKILL-F01` SkillTree 示例（反射已挂，Review 中；统一 Graph Deferred）。
 
 ## 4) 协作约定
 
