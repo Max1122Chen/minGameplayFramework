@@ -78,16 +78,28 @@ DurabilityFragment.GrantProperty → 写入 Instance
 WeaponFragment → WeaponDef（独立 Catalog）
 ```
 
+## 当前参考实现契约（钉死，避免歧义）
+
+| 主题 | 契约 |
+| --- | --- |
+| Def 寿命 | `ItemInstance` 持有**非拥有** `ItemDef*`。典型由 Catalog/`shared_ptr` + Registry 常驻持有；不处理热重载/卸载顺序。 |
+| 堆叠兼容 | `CanStackWith` **只比较** Def 指针 + 双方非空堆；**不比较** Instance 属性。带独立耐久等属性的示例多为 `maxStack=1`。 |
+| 属性名 | 同一 Instance 内跨 Int/Float/Bool 桶**全局唯一**；重复 `AddProperty` 返回 false。 |
+| Int range | 默认 `[INT_MIN, INT_MAX]`（无额外限制）；`SetRange` 后 clamp；`min>max` 时交换。 |
+| Float range | 默认 min/max 为 **NaN = 该侧无限制**；仅对有限值夹取有界侧。 |
+| 已实现类型 | 仅 Int / Float / Bool；枚举中其余值为占位，无 API。 |
+| 跨 Content | Weapon/Equipment 为独立 ContentDef，由 Item 上 Fragment 引用（组合，非继承）。 |
+
 ## Open Questions
 
-- Property 袋是否第一版就实现完整类型族，还是只做 Int/Float/Bool？— **建议只做常用三种**，其余注释占位。
+- Property 袋是否第一版就实现完整类型族，还是只做 Int/Float/Bool？— **已定：只做常用三种**，其余枚举占位。
 
 ## 正式化顺序
 
-1. ItemDefFragmentBase / ItemDef / 示例 Frag（含 Durability Grant）  
-2. InstanceProperty（常用三种）+ ItemInstance  
-3. WeaponDef / EquipmentDef + 对应 Frag（骨架 + 中文注释）  
-4. 充实 `ExampleItemDefs` 伪数据；**不**加入 CMake 编译  
+1. ItemDefFragmentBase / ItemDef / 示例 Frag（含 Durability Grant） — 完成  
+2. InstanceProperty（常用三种）+ ItemInstance — 完成  
+3. WeaponDef / EquipmentDef + 对应 Frag（骨架 + 中文注释） — 骨架完成  
+4. 充实 `ExampleItemDefs` 伪数据；**不**加入 CMake 编译 — 完成  
 
 ## Design Review
 - **Verdict:** Ready with deferred items（代码先行已正式化；薄设计作执行参照）

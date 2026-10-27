@@ -72,9 +72,12 @@ namespace minGameplayFramework::Inventory::GridBased
         int TryAddItem(InventoryItem::ItemInstance& item) override;
         int TryRemoveItem(InventoryItem::ItemInstance& item) override;
 
+        /// @brief 按值接收物品；失败时参数析构，物品不会回写调用方——需要保留时请先拷贝再传入。
         bool TryPlaceAt(InventoryItem::ItemInstance item, int originX, int originY, int quarterTurns);
         bool FindFirstFit(const InventoryItem::ItemInstance& item, int& outX, int& outY, int& outQuarterTurns) const;
 
+        /// @brief 合并可堆叠堆后按面积 First-Fit 重排。
+        /// @warning 简单 First-Fit 不完备：整理前能放下的布局整理后仍可能驱逐部分物品（Reason=Reorganized）。
         void TryAutoOrganize();
 
         const std::vector<GridPlacement>& GetPlacements() const { return m_Placements; }

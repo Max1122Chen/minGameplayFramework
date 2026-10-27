@@ -217,3 +217,58 @@ TEST_CASE("slot inventory TryAddTo and TryRemoveFrom")
     CHECK(taken.GetStackCount() == 2);
     CHECK(inventory.GetSlot(0).GetStackCount() == 2);
 }
+
+TEST_CASE("slot inventory shrink emits Cleared for vacated trailing slots")
+{
+    using namespace minGameplayFramework::InventoryItem;
+    using namespace minGameplayFramework::Inventory::SlotBased;
+    using minGameplayFramework::Inventory::InventoryChangeReason;
+
+    ItemDef def;
+    def.SetMaxStackCount(1);
+
+    SlotBasedInventory inventory;
+    inventory.SetCapacity(2);
+
+    ItemInstance item;
+    item.SetItemDef(&def);
+    item.SetStackCount(1);
+    inventory.SetSlot(1, std::move(item));
+
+    bool sawClearedOnOne = false;
+    inventory.OnSlotChanged.AddLambda([&](int index, InventoryChangeReason reason) {
+        if (index == 1 && reason == InventoryChangeReason::Cleared)
+        {
+            sawClearedOnOne = true;
+        }
+    });
+
+    inventory.SetCapacity(1);
+    CHECK(sawClearedOnOne);
+    CHECK_FALSE(inventory.GetSlot(0).IsEmpty());
+}
+
+TEST_CASE("slot inventory TryRemoveItem mutates request stack remainder")
+{
+    using namespace minGameplayFramework::InventoryItem;
+    using namespace minGameplayFramework::Inventory::SlotBased;
+
+    ItemDef def;
+    def.SetMaxStackCount(10);
+
+    SlotBasedInventory inventory;
+    inventory.SetCapacity(1);
+
+    ItemInstance add;
+    add.SetItemDef(&def);
+    add.SetStackCount(5);
+    CHECK(inventory.TryAddItem(add) == 5);
+
+    ItemInstance request;
+    request.SetItemDef(&def);
+    request.SetStackCount(8);
+    CHECK(inventory.TryRemoveItem(request) == 5);
+    CHECK(request.GetStackCount() == 3);
+    CHECK(request.GetItemDef() == &def);
+    CHECK(inventory.GetSlot(0).IsEmpty());
+}

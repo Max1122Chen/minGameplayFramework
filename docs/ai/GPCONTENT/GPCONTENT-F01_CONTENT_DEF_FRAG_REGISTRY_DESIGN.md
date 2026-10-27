@@ -50,15 +50,25 @@ GameplayContentRegistry  // GameInstance 子系统
 - 正式游戏可用 DataAsset 承载 Catalog；框架代码保留该扩展点。
 - **本仓库示例路径：** yaml/json/md-like 伪代码（如后续 Item 的 `ExampleItemDefs` 无后缀文件），**不参与编译**。
 
+## 身份键分工（参考实现）
+
+| 键 | 用途 |
+| --- | --- |
+| `MEClass` / `GetFragment<T>()` | **运行时类型身份**（同类型建议至多一个；`AddFragment` 拒绝重复类型） |
+| `GetFragmentId()` string / `GetFragmentIdTag()` | **可迁移查找键**；参考实现并存，迁移到具体项目时应二选一 |
+| GameplayTag on Def/Item | **玩法分类**（如物品类别路由），不是 Fragment 类型替代品 |
+
+不要把 string / Tag / 反射类型当成可互换的“万能 ID”。
+
 ## Open Questions
 
-- Catalog 查找键：id 与 name 并存是否足够？— 非 blocking，正式化按草稿。
+- Catalog 查找键：id 与 name 并存是否足够？— 非 blocking；碰撞时后注册覆盖（当前行为）。
 
 ## 正式化顺序
 
-1. Fragment / Def（含 Frag 存储与查询）+ 中文注释  
-2. Catalog / Registry 骨架 + GameInstance 挂点  
-3. 不写真实示例资产；仅在注释中示意 Catalog 装载关系  
+1. Fragment / Def（含 Frag 存储与查询）+ 中文注释 — 完成  
+2. Catalog / Registry 骨架 + GameInstance 挂点 — 完成  
+3. 不写真实示例资产；仅在注释中示意 Catalog 装载关系 — 完成  
 
 ## Design Review
 - **Verdict:** Ready with deferred items（代码先行已正式化；薄设计作执行参照，详细契约在源码注释）

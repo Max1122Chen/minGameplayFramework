@@ -40,6 +40,7 @@ namespace minGameplayFramework::Inventory::SlotBased
 
             InventoryItem::ItemInstance moving = std::move(trailing);
             trailing = InventoryItem::ItemInstance{};
+            EmitSlotChanged(i, InventoryChangeReason::Cleared);
 
             // Temporarily keep full vector so TryAddIntoRange can write front slots.
             TryAddIntoRange(moving, 0, newCapacity, true);

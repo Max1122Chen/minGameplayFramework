@@ -39,6 +39,8 @@ namespace minGameplayFramework::Inventory::CategoryBased
 
             InventoryItem::ItemInstance moving = std::move(trailing);
             trailing = InventoryItem::ItemInstance{};
+            EmitSlotChanged(i, InventoryChangeReason::Cleared);
+
             TryAddIntoRange(moving, 0, newCapacity, true);
             if (!moving.IsEmpty())
             {
@@ -61,10 +63,17 @@ namespace minGameplayFramework::Inventory::CategoryBased
         return m_Items.at(static_cast<size_t>(index));
     }
 
-    void CategorizedInventory::SetSlot(int index, InventoryItem::ItemInstance item)
+    bool CategorizedInventory::SetSlot(int index, InventoryItem::ItemInstance item)
     {
+        // 路由键用 TagName（不必已 Bind 进 TagManager）；空名表示开放桶、不校验。
+        if (!item.IsEmpty() && item.GetItemDef() != nullptr && !m_Category.GetName().empty() &&
+            item.GetItemDef()->GetItemCategoryTag() != m_Category)
+        {
+            return false;
+        }
         m_Items.at(static_cast<size_t>(index)) = std::move(item);
         EmitSlotChanged(index, InventoryChangeReason::Set);
+        return true;
     }
 
     void CategorizedInventory::ClearSlot(int index)
@@ -84,7 +93,7 @@ namespace minGameplayFramework::Inventory::CategoryBased
         {
             return 0;
         }
-        if (m_Category.IsValid() && item.GetItemDef()->GetItemCategoryTag() != m_Category)
+        if (!m_Category.GetName().empty() && item.GetItemDef()->GetItemCategoryTag() != m_Category)
         {
             return 0;
         }
@@ -97,7 +106,7 @@ namespace minGameplayFramework::Inventory::CategoryBased
         {
             return 0;
         }
-        if (m_Category.IsValid() && item.GetItemDef()->GetItemCategoryTag() != m_Category)
+        if (!m_Category.GetName().empty() && item.GetItemDef()->GetItemCategoryTag() != m_Category)
         {
             return 0;
         }
@@ -301,7 +310,8 @@ namespace minGameplayFramework::Inventory::CategoryBased
         }
 
         const minEngine::GameplayTag& category = item.GetItemDef()->GetItemCategoryTag();
-        if (!category.IsValid())
+        // 分类背包按 TagName 路由；无需 TagManager::IsValid（便于无管理器环境的示例与单测）。
+        if (category.GetName().empty())
         {
             return 0;
         }

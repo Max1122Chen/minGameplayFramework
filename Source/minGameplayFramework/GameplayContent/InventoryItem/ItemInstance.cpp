@@ -2,9 +2,21 @@
 #include "GameplayContent/InventoryItem/ItemDef.hpp"
 
 #include <algorithm>
+#include <utility>
 
 namespace minGameplayFramework::InventoryItem
 {
+    void IntInstanceProperty::SetRange(int minValue, int maxValue)
+    {
+        if (minValue > maxValue)
+        {
+            std::swap(minValue, maxValue);
+        }
+        m_MinValue = minValue;
+        m_MaxValue = maxValue;
+        SetValue(m_Value);
+    }
+
     void IntInstanceProperty::SetValue(int value)
     {
         if (value < m_MinValue)
@@ -18,15 +30,30 @@ namespace minGameplayFramework::InventoryItem
         m_Value = value;
     }
 
+    void FloatInstanceProperty::SetRange(float minValue, float maxValue)
+    {
+        if (!std::isnan(minValue) && !std::isnan(maxValue) && minValue > maxValue)
+        {
+            std::swap(minValue, maxValue);
+        }
+        m_MinValue = minValue;
+        m_MaxValue = maxValue;
+        SetValue(m_Value);
+    }
+
     void FloatInstanceProperty::SetValue(float value)
     {
-        if (value < m_MinValue)
+        // NaN / Inf 输入：有界时仍不强制改写非有限值；仅对有限值做上下限夹取。
+        if (std::isfinite(value))
         {
-            value = m_MinValue;
-        }
-        if (value > m_MaxValue)
-        {
-            value = m_MaxValue;
+            if (HasMinBound() && value < m_MinValue)
+            {
+                value = m_MinValue;
+            }
+            if (HasMaxBound() && value > m_MaxValue)
+            {
+                value = m_MaxValue;
+            }
         }
         m_Value = value;
     }
@@ -56,22 +83,73 @@ namespace minGameplayFramework::InventoryItem
         return *this;
     }
 
-    void ItemInstance::AddProperty(IntInstanceProperty property)
+    ItemInstance::ItemInstance(ItemInstance&& other) noexcept
+        : m_ItemDef(other.m_ItemDef)
+        , m_StackCount(other.m_StackCount)
+        , m_IntProperties(std::move(other.m_IntProperties))
+        , m_FloatProperties(std::move(other.m_FloatProperties))
+        , m_BoolProperties(std::move(other.m_BoolProperties))
     {
+        other.m_ItemDef = nullptr;
+        other.m_StackCount = 0;
+        other.m_NameToPropertyMap.clear();
+        RebuildPropertyMaps();
+    }
+
+    ItemInstance& ItemInstance::operator=(ItemInstance&& other) noexcept
+    {
+        if (this == &other)
+        {
+            return *this;
+        }
+        m_ItemDef = other.m_ItemDef;
+        m_StackCount = other.m_StackCount;
+        m_IntProperties = std::move(other.m_IntProperties);
+        m_FloatProperties = std::move(other.m_FloatProperties);
+        m_BoolProperties = std::move(other.m_BoolProperties);
+        other.m_ItemDef = nullptr;
+        other.m_StackCount = 0;
+        other.m_NameToPropertyMap.clear();
+        RebuildPropertyMaps();
+        return *this;
+    }
+
+    bool ItemInstance::HasPropertyName(const std::string& propertyName) const
+    {
+        return m_NameToPropertyMap.find(propertyName) != m_NameToPropertyMap.end();
+    }
+
+    bool ItemInstance::AddProperty(IntInstanceProperty property)
+    {
+        if (HasPropertyName(property.GetName()))
+        {
+            return false;
+        }
         m_IntProperties.push_back(std::move(property));
         RebuildPropertyMaps();
+        return true;
     }
 
-    void ItemInstance::AddProperty(FloatInstanceProperty property)
+    bool ItemInstance::AddProperty(FloatInstanceProperty property)
     {
+        if (HasPropertyName(property.GetName()))
+        {
+            return false;
+        }
         m_FloatProperties.push_back(std::move(property));
         RebuildPropertyMaps();
+        return true;
     }
 
-    void ItemInstance::AddProperty(BoolInstanceProperty property)
+    bool ItemInstance::AddProperty(BoolInstanceProperty property)
     {
+        if (HasPropertyName(property.GetName()))
+        {
+            return false;
+        }
         m_BoolProperties.push_back(std::move(property));
         RebuildPropertyMaps();
+        return true;
     }
 
     void ItemInstance::RemoveProperty(const std::string& propertyName)

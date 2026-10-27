@@ -26,6 +26,9 @@ out/
 bin/
 obj/
 lib/
+
+# Reflection codegen (produced under Generated/Reflection by CMake / header_tool)
+Generated/
 *.o
 *.obj
 *.a

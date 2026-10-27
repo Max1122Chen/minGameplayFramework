@@ -43,8 +43,8 @@ next concrete step with its verification command. Do not start coding before sum
 | `docs/ai/PROJECT_CONTEXT.md` | 稳定项目快照与不变量 |
 | `docs/ai/WORKFLOW_PROFILE.md` | 协作姿态（preset 与各维度取值） |
 | `docs/ai/BOOTSTRAP_DIGEST.md` | 一页式会话恢复摘要 |
-| `docs/ai/ACTIVE_WORK.md` | 活跃队列（当前为空骨架） |
-| `docs/ai/FEATURE_REGISTRY.md` | Feature 登记表与领域码表（当前仅 `CORE`） |
+| `docs/ai/ACTIVE_WORK.md` | 活跃队列 |
+| `docs/ai/FEATURE_REGISTRY.md` | Feature 登记表与领域码表（`CORE` / `GPCONTENT` / `ITEM` / `INVENTORY` / `SKILL`） |
 | `docs/ai/PROGRESS_LOG.md` | 追加式事实历史 |
 | `docs/ai/TECH_DEBT.md` | 显式技术债 |
 | `docs/ai/WORKING_WITH_AI.md` | AI 协作协议 |
@@ -61,7 +61,7 @@ next concrete step with its verification command. Do not start coding before sum
 
 ### 追加领域码
 
-当前只注册 `CORE`（框架内核与通用契约）。ITEM、INVENTORY、ABILITY、ATTR 等**不预置**：等第一个真实需求出现时，再到 `FEATURE_REGISTRY.md` 的领域码表追加——全大写、短、稳定，不建空桶。
+已启用：`CORE`（预留）、`GPCONTENT`、`ITEM`、`INVENTORY`、`SKILL`。ABILITY、ATTR 等仍**不预置**：等第一个真实需求出现时再到 `FEATURE_REGISTRY.md` 追加——全大写、短、稳定，不建空桶。
 
 ### 命令（opencode.json 中定义）
 
@@ -77,7 +77,7 @@ next concrete step with its verification command. Do not start coding before sum
 ## 写作与代码规范摘要
 
 - 项目自有文档用**中文**；从模板继承的治理文档、`.cursor` 规则、技能保留**英文**原文。
-- 源码注释用**英文**、Doxygen 风格：公开 API 用 `///`（`@brief` / `@param` / `@return` / `@warning`），内部实现用 `//`。
+- 源码注释：Doxygen；正式化先**中文**契约供审，通过后补**英文**，最终中英双语。公开 API 用 `///`（`@brief` / `@param` / `@return` / `@warning`），内部用 `//`。
 - **不逐字段、逐方法写注释**：只写非显而易见的 why、契约、不变量、前置条件、易错点。
 - 注释、日志、测试名里**禁止**出现 Feature/Slice/Bug/ADR/TechDebt 编号、裸切片标签、设计文档章节号、需求编号、提交哈希、指向协作文档的指针——把“为什么”就地写清楚。
 - 分支命名 `feat/<topic>[/<subtopic>]`，禁止 ID 入名。
@@ -86,10 +86,10 @@ next concrete step with its verification command. Do not start coding before sum
 
 ## 当前状态
 
-- 初始化完成：只有规范与协作文档。
-- **没有代码工程，没有构建系统**；`.gitignore` 已预置 C++ 产物规则，供未来接入代码。
-- 未登记任何 Feature，`ACTIVE_WORK.md` 与 `FEATURE_REGISTRY.md` 为空队列骨架。
-- 验证基线为 **docs-only**（文档自检、占位符与失效链接检查、命名合规）；首个代码 Feature 落地时升级为 **tests-required**。
+- 协作文档 + minEngine 产品工程（CMake、`Source/minGameplayFramework/`、`MGF_Tests`）已挂上。
+- **已落地（有代码与测试）**：Gameplay Content（Def / Fragment / Catalog / Registry）、ItemDef / ItemInstance、三类 Inventory 示例（Slot / Category / Grid）。
+- **Review 中**：SkillTree 示例（`SKILL-F01`）；统一 `GameplayDataGraph` 抽象 **Deferred / 视为弃用方向**，不以当前态阻塞其它模块。
+- 验证基线为 **tests-required**：`cmake --build build --target MGF_Tests`，然后 `bin/MGF_Tests.exe`。
 
 ## 关联项目
 

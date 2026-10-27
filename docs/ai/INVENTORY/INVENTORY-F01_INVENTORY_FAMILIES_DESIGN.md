@@ -54,17 +54,28 @@ GridBasedInventory
 - **当前朝向**是 Instance（或等价放置态）上的 Property，由 Frag `GrantProperty` 赋予——与 Durability 同一模式。
 - 整理与 FindFirstFit 读取该 Property + w/h 计算占用。
 
+## 当前参考实现契约（钉死）
+
+| 主题 | 契约 |
+| --- | --- |
+| TryAdd / TryRemove | 入参 stack **就地修改**，返回实际数量（有意设计，非缺陷）。 |
+| 缩容 | 尾槽物品前移；腾空尾槽发 `Cleared`；放不下的进 `OnItemsEvicted`（`CapacityShrink`）。 |
+| Category | 须先 `EnsureCategory`；按 **Tag 名**精确匹配（不要求 TagManager::IsValid）；`SetSlot` / `TryAdd` 拒绝错误类别；空名桶为开放桶。 |
+| Grid 放置 | 一整堆 = 一个占位；`TryPlaceAt` 按值接收，**失败则参数析构**（需保留请先拷贝）。 |
+| Grid 整理 | First-Fit 简单策略，**可能驱逐**整理前本可放下的物品（见 `TECH_DEBT` TD-001）。 |
+| MC 特殊槽 | `GetStorageEnd` 使自动 Add/Remove 不进盔甲/副手；非装备系统。 |
+
 ## Open Questions
 
-- 放置 origin (x,y) 放在 Inventory 侧放置记录，还是也做成 Instance Property？— **建议 origin 在 Inventory 放置记录**（同一物品换包不应绑死坐标）；旋转用 Instance Property。非 blocking。
+- 放置 origin (x,y) 放在 Inventory 侧放置记录，还是也做成 Instance Property？— **已定：origin 在放置记录**；旋转用 Instance Property。
 
 ## 正式化顺序
 
-1. `IInventoryBase` 契约注释  
-2. SlotBased + Player 区间示意 + Chest；Workbench/Furnace 空类或注释  
-3. CategoryBased  
-4. GridGeometryFragment（Grant 旋转 Property）+ GridBased（旋转放置 + 简单整理）  
-5. 少量单测意思一下（若验证基线已升档）  
+1. `IInventoryBase` 契约注释 — 完成  
+2. SlotBased + Player 区间示意 + Chest；Workbench/Furnace 空类或注释 — 完成  
+3. CategoryBased — 完成  
+4. GridGeometryFragment（Grant 旋转 Property）+ GridBased（旋转放置 + 简单整理） — 完成  
+5. 单测 — Slot / Category / Grid / ItemInstance 已覆盖主契约  
 
 ## Design Review
 - **Verdict:** Ready with deferred items（代码先行已正式化；薄设计作执行参照）

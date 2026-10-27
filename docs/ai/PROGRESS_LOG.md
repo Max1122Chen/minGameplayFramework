@@ -101,3 +101,15 @@
   - ACTIVE_WORK / BOOTSTRAP 同步
 - 验证：`MGF_Tests` 19/19 通过（含 skill tree）
 - 下一步：作者审阅通过 → prepare commit（不含统一 Graph）
+
+## 2026-10-27（契约审计与正确性加固：ItemInstance + Inventory + 文档对齐）
+
+- 范围：对照源码审计后的小步修正；未重做 TryAdd/Remove 转移语义；未清理弃用 GameplayDataGraph；未引入装备/效果子系统。
+- 完成：
+  - ItemInstance：Int 默认 `[INT_MIN,INT_MAX]`；Float 默认 NaN=无限制；属性名跨桶唯一（重复 Add 失败）；显式 move + Rebuild；Def 寿命 / CanStackWith 契约注释
+  - Inventory：缩容腾空槽发 `Cleared`；Category `SetSlot` 校验；分类按 Tag **名**路由（不依赖 TagManager::IsValid）；Grid organize / TryPlaceAt 契约注释；登记 TD-001
+  - 文档：README / TECH_DEBT / GPCONTENT·ITEM·INVENTORY 薄设计补「当前契约」表
+  - 测试：ItemInstance 边界、CategoryBased、缩容 Cleared、TryRemove 入参剩余量
+- 装备端到端评估：仅有 EquipableFragment / 空 EquipmentDef / 盔甲槽常量；缺 TryEquip、槽位规则、属性结算、存档演示——**不**为此新建子系统
+- 验证：`cmake --build build --target MGF_Tests`；`bin/MGF_Tests.exe` → **29/29** 通过
+- 下一步：作者审阅本批 diff；需要时可 prepare commit；装备演示仅在明确批准最小范围后做

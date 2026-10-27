@@ -14,7 +14,9 @@
 
 namespace minGameplayFramework::Inventory::CategoryBased
 {
-    /// @brief 单一类别容器（按 Tag 过滤）；槽语义与 SlotBased 对齐。
+    /// @brief 单一类别容器（按 Tag **名**过滤）；槽语义与 SlotBased 对齐。
+    /// @note 过滤键是 `GameplayTag::GetName()`，不要求 Tag 已注册到 TagManager。
+    ///       类别名为空时视为开放桶（不校验）。
     class CategorizedInventory : public IInventoryBase
     {
     public:
@@ -25,7 +27,9 @@ namespace minGameplayFramework::Inventory::CategoryBased
         int GetCapacity() const { return m_Capacity; }
 
         const InventoryItem::ItemInstance& GetSlot(int index) const;
-        void SetSlot(int index, InventoryItem::ItemInstance item);
+        /// @brief 写入槽位；非空且类别 Tag 名与本容器不符时拒绝，槽位不变。
+        /// @return 是否写入成功。
+        bool SetSlot(int index, InventoryItem::ItemInstance item);
         void ClearSlot(int index);
 
         int TryAddItem(InventoryItem::ItemInstance& item) override;
