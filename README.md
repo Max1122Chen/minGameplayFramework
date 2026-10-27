@@ -107,3 +107,69 @@ next concrete step with its verification command. Do not start coding before sum
 - 不承诺覆盖所有 gameplay 子系统；领域码按真实需求逐个追加，不做预置设计。
 - 不承诺与任何特定引擎 API 绑定；迁移时允许、也预期需要重写代码。
 - 不承诺文档冻结：设计会被评审推翻，推翻过程记录在 `docs/ai/PROGRESS_LOG.md`。
+
+## 工程与构建
+
+本节描述仓库根目录的 CMake 工程：它把 minEngine 作为 `ENGINE_ROOT` 拉进来，产出 game module DLL、
+独立游戏宿主与编辑器宿主，并提供一个 doctest 测试可执行。
+
+### 工具链要求
+
+- CMake ≥ 3.20（实测 4.2.0-rc1）。
+- **生成器必须与引擎树一致**：本仓使用 `MinGW Makefiles` + MinGW-Builds GCC 15.2.0
+  （`D:/Dev/mingw64/bin/g++.exe`），与 `minEngine/minEngine/build/CMakeCache.txt` 里记录的
+  `CMAKE_GENERATOR` / `CMAKE_CXX_COMPILER` 相同。不要混用 Visual Studio 或别家的 MinGW：
+  引擎侧的 `libminEngine.dll` 与第三方 DLL 由同一套运行时构建。
+- `ENGINE_ROOT` 指向 minEngine **仓库根**（不是 `minEngine/minEngine`），默认值已写为
+  `D:/Dev/GitRepo/minEngine`，可覆盖。
+
+### configure / build
+
+```powershell
+cmake -S . -B build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Debug
+cmake --build build -j
+```
+
+只想验证接线、不想要测试目标时：追加 `-DMGF_BUILD_TESTS=OFF`。
+
+打包（复制 exe + 运行时 DLL 到 `Staging/minGameplayFramework/`，不做 Cook）：
+
+```powershell
+cmake --build build --target package-minGameplayFramework
+```
+
+### 产物位置
+
+所有运行期产物都写在仓库根的 `bin/`（`MINENGINE_OUTPUT_DIR`）：
+
+| 产物 | 说明 |
+| --- | --- |
+| `bin/minGameplayFramework.exe` | 独立游戏宿主（`Source/Programs/GameMain.cpp`） |
+| `bin/minGameplayFrameworkEditor.exe` | 编辑器宿主（引擎 `Editor/src/EditorMain.cpp` + 本模块） |
+| `bin/minGameplayFramework.dll` | game module（反射注册、gameplay 代码） |
+| `bin/libminEngine.dll`、`bin/glfw3.dll` 等 | 引擎与第三方运行时 DLL |
+| `bin/MGF_Tests.exe` | doctest 测试可执行 |
+
+`build/` 是 CMake 中间目录，`bin/` 与 `build/` 都已被 `.gitignore` 忽略。
+
+### 测试
+
+```powershell
+ctest --test-dir build --output-on-failure
+```
+
+`MGF_BUILD_TESTS`（默认 `ON`）控制 `MGF_Tests`：`tests/Main.cpp` 提供 doctest 的 main，
+用例放在 `tests/` 下（`tests/PlaceholderTestCases.hpp` 是链路自检）。CTest 通过 `add_test` 注册。
+
+### EngineConfig 由 CMake 生成
+
+configure 阶段会写 `bin/EngineConfig.meconfig`，其中 `EngineDefaultAssetsRoot` 指向引擎树的
+`Assets/EngineDefault`（相对 `bin/` 的路径）。Dev 下两个宿主都以 cwd=`bin` 启动，PathRegistry
+靠这个文件找到引擎内置资源（编辑器 Play 按钮图标等）。引擎树里缺少该目录时只发 `WARNING`，不失败，
+但此时内置资源不会被解析。
+
+### 反射 codegen
+
+`Source/minGameplayFramework/` 是本项目的 gameplay 代码根，也是 codegen 的 `SRC_ROOT`；
+带反射元数据的头文件必须放在这个目录（含子目录）。生成结果写到 `Generated/Reflection/`。
+

@@ -37,7 +37,7 @@ When context may be stale, re-bootstrap from:
   - design-document section numbers (`§3.4`, `design §2.7`, `H8`)
   - requirement / acceptance-criteria labels (`O1`, `I1`, `Q3`)
   - commit hashes, or pointers into collaboration docs ("see ACTIVE_WORK", "see design doc")
-- **Doxygen style is required for contracts**: public API uses `///` with `@brief` / `@param` / `@return` / `@warning` where they add information; internal notes use `//`. Comments are written in English.
+- **Doxygen style is required for contracts**: public API uses `///` with `@brief` / `@param` / `@return` / `@warning` where they add information; internal notes use `//`. Formalize Chinese first for author review, then add English (bilingual end state).
 - Comment only the non-obvious *why*, invariants, hazards, and trade-offs. Do not annotate every field or method; a comment that restates the code is noise and should be deleted.
 - IDs belong in `docs/ai/`, commit messages, and PR text — not in code.
 - Full rule: `.cursor/rules/code-comments-no-feature-ids.mdc`.

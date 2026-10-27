@@ -1,6 +1,6 @@
 # 项目上下文
 
-Last updated: 2026-10-26
+Last updated: 2026-10-27
 
 ## 1) 项目使命与成功判据
 
@@ -10,32 +10,40 @@ Last updated: 2026-10-26
 成功判据：
 - 设计可被第三方引擎 / 语言复用：去掉 C++ 与 minEngine 的具体 API 之后，这条设计依然成立。
 - 参考实现能在 minEngine 上跑通：关键机制有可运行载体，不止于纸面。
-- 文档即设计真相：判断"应该怎么做"的第一来源是设计文档，而不是注释、记忆或对上游引擎的模仿。
+- 稳定后的设计真相：探索期以作者代码 / 伪代码与口头契约为准；行为稳定后提炼设计文档与英文 Doxygen，此后「应该怎么做」以设计文档 + 代码契约注释为准，而不是记忆或对上游引擎的模仿。
 - 迁移成本可验证：新增一个引擎 / 语言适配时，需要重写的是代码，不需要重新推导设计。
 
 ## 2) 架构方向
 
-- 框架的分层、模块边界与依赖方向**将由 CORE 域的设计文档确定；当前尚未设计，勿臆造模块**。
-- 不预设子系统清单：ITEM、INVENTORY、ABILITY、ATTR 等在首个真实需求出现时才登记领域码与 Feature。
-- 已知的长期约束：设计必须与引擎解耦，能落到 minEngine 的 C++ 实现，也能映射到其他引擎与语言。
+- 分层与模块边界**由作者在代码探索中逐步定型**，再提炼进 CORE 域设计文档；勿从已归档的 design v1 臆造模块。
+- 已落地：`GPCONTENT-F01` / `ITEM-F01` / `INVENTORY-F01`（Done）。
+- 要点：Def+Frag 组合；Item 可引用独立 Weapon/Equipment ContentDef；示例用无后缀伪数据，不做真实 DataAsset；Inventory 示例意思即可；Grid 旋转 = Frag Grant 的 Instance Property。
+- 直接复用 minEngine：GameplayTag、EventBus、反射与序列化；Catalog 可挂 DataAsset 扩展点，本仓示例不强制走资产管线。
+- 长期约束：设计与引擎解耦；能落到 minEngine C++，也能映射到其他引擎与语言。
+- 统一依赖图模型 Deferred；具体树示例（如 SkillTree）可并行探索。
 
 ## 3) 当前阶段
 
-- 初始化完成：协作与规范文档骨架就位，**无代码工程、无构建系统、无 Feature**。
-- 下一步里程碑：完成第一份 CORE 域设计文档（框架分层与通用契约），经设计评审后登记为 Feature。
+- 协作骨架与 minEngine 产品工程已挂上；Content / Item / Inventory 正式化代码与测试已落地。
+- CORE design v1 已作废（见 `docs/deprecated/`）；工作流为**代码 / 伪代码先行 → 审批 → Doxygen → 设计文档**。
+- 下一批：SkillTree 等具体树示例（未纳入 Content/Inventory 提交）。
 
 ## 4) 协作约定
 
-- 规划真相：`ACTIVE_WORK.md`、`FEATURE_REGISTRY.md`、`TECH_DEBT.md`、近期 `PROGRESS_LOG.md`。
-- 交付标准：遵循 `templates/DOC_GOVERNANCE.md` 的文档类型与 Definition of Done。
+- 规划真相：`ACTIVE_WORK.md`、`FEATURE_REGISTRY.md`、`TECH_DEBT.md`、近期 `PROGRESS_LOG.md`，以及**作者正在写的源码草稿**。
+- 探索期节奏见 `WORKING_WITH_AI.md`「探索期协作节奏」。
+- 交付标准：遵循 `templates/DOC_GOVERNANCE.md`；空壳设计仍拒绝。
 - 会话恢复：按 `BOOTSTRAP_DIGEST.md` 的读取顺序恢复上下文。
 - 项目自有文档用中文；治理文档、`.cursor` 规则与技能保留英文原文。
-- 源码注释用英文、Doxygen 风格；只写非显而易见的 why、契约、不变量、易错点，不逐字段逐方法注释。
+- 源码注释：Doxygen；正式路径先中文（why / 解决问题 / 迁移注意）供审，通过后补英文，最终中英双语。禁止登记 ID 与设计章节号入注释。
+- 设计文档保持薄，作执行参照；详细设计思想以代码注释为准（代码即文档）。
 
 ## 5) 验证基线
 
-- 当前 `verification_bar` = **docs-only**：没有构建命令、没有测试命令；验收手段是文档自检（占位符扫描、命名与 ID 合规、交叉引用指向真实路径）。
-- 升级条件：首个代码 Feature 落地时升为 **tests-required**，届时在本节登记构建与测试命令，并同步 `WORKFLOW_PROFILE.md` 与 `BOOTSTRAP_DIGEST.md`。
+- 当前 `verification_bar` = **tests-required**。
+- 构建：`cmake --build build --target MGF_Tests`（根 `CMakeLists.txt`；`ENGINE_ROOT` → minEngine）。
+- 测试：`bin/MGF_Tests.exe`（CTest 名 `MGF_Tests`）。
+- 文档变更仍须文档自检；代码变更须给出实际命令与输出。
 
 ## 6) 参考仓与只读边界
 

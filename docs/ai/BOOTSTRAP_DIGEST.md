@@ -1,6 +1,6 @@
 # Bootstrap Digest（会话快速恢复）
 
-Last updated: 2026-10-26
+Last updated: 2026-10-27
 用途：新会话在 2 分钟内恢复协作上下文。
 
 ## 新会话读取顺序
@@ -11,7 +11,7 @@ Last updated: 2026-10-26
 4. `ACTIVE_WORK.md`
 5. `FEATURE_REGISTRY.md` — 关注 In Progress / Planned
 6. `TECH_DEBT.md` — Open
-7. 任务相关的设计文档（由 ACTIVE_WORK 链接，或用户点名）
+7. 任务相关的设计文档（由 ACTIVE_WORK 链接，或用户点名）；探索期同时看作者正在写的 `Source/` 草稿
 
 ## Workflow profile 门禁
 
@@ -22,13 +22,14 @@ Last updated: 2026-10-26
 
 ## 非协商协作规则
 
-- 只从可信来源规划；不要从旧 roadmap、模板示例、历史设计里的勾选清单推断待办。
-- 新的实质性工作：先写一句复杂度级别（L0–L3）+ 理由；登记 ID；L2+ 先设计再大规模编码。
-- `Draft` 设计或设计评审「未就绪」都不授权大规模编码。
-- L3 架构安全检查不可被 profile 跳过。
+- 只从可信来源规划；不要从旧 roadmap、模板示例、历史设计里的勾选清单、`docs/deprecated/` 归档件推断待办。
+- 新的实质性工作：先写一句复杂度级别（L0–L3）+ 理由。本仓探索期默认**代码 / 伪代码先行**（见 `WORKING_WITH_AI.md`）；稳定后再登记 Feature 并提炼设计文档。
+- 已写出的 `Draft` 设计或评审「未就绪」文档不得冒充当前契约；空壳设计仍拒绝。
+- L3 架构安全检查（所有权 / 契约 / 迁移 / 失败路径）不可被 profile 跳过——可用代码草稿 + 意图回放承担，不强制先出长文。
 - 一个有意义的批次结束：先过 Process + Quality DoD，再提议「准备提交」，然后才进入不相关的下一件事。
 - 准备提交只包含起草与评审；`git commit` / push 只在用户明确指示后执行。
-- 源码注释、日志字符串、测试用例名不得出现 Feature / Slice / Bug / ADR / TechDebt 编号或设计文档章节号；分支名用 `feat/<topic>[/<subtopic>]`，不用 ID。
+- 源码注释：Doxygen；正式化先中文（why / 问题 / 迁移），作者审过再补英文，最终双语；注释与测试名不得出现 Feature / Slice / Bug / ADR / TechDebt 编号或设计章节号；分支名用 `feat/<topic>[/<subtopic>]`，不用 ID。
+- 设计文档宜薄（执行参照）；详细契约与设计思想以代码注释为准。
 - Profile 可以调整严格度、自主度、角色、语言、文档拓扑、验证基线；不能关闭以上任何一条。
 
 ## 工程设计与评审
@@ -36,7 +37,8 @@ Last updated: 2026-10-26
 - 技能：`.opencode/skills/engineering-design/`、`.opencode/skills/design-review/`
 - 流程与就绪门槛：`templates/DOC_GOVERNANCE.md`
 - 设计原则透镜：`templates/DESIGN_PRINCIPLES.md`
-- L0 可跳过设计；L2+ 走 Design → Design Review → Implementation Plan；L3 追加 readiness 门禁。
+- 本仓默认路径：作者草稿代码 → agent 正式化与审批 → Doxygen → 设计文档提炼。
+- 若某次工作明确选择「先写设计再编码」，仍走 Design → Design Review → Implementation Plan；L3 追加 readiness 门禁。
 
 ## ID 方案
 
@@ -49,13 +51,15 @@ Last updated: 2026-10-26
 
 ## 领域码
 
-- 已启用：**仅 `CORE`**（框架内核与通用契约）。
-- 其他子系统码在首个真实需求出现时按 `FEATURE_REGISTRY.md` 的追加规则登记；不得预置、不建空桶。
+- 已启用：`CORE`（预留）、`GPCONTENT`、`ITEM`、`INVENTORY`。
+- 已落地：`GPCONTENT-F01` / `ITEM-F01` / `INVENTORY-F01`（Done）。
+- 其他子系统码在首个真实需求出现时按 `FEATURE_REGISTRY.md` 追加；不得预置、不建空桶。
 
 ## 验证基线
 
-- 当前 `docs-only`：没有构建与测试命令；验收 = 文档自检（占位符扫描、命名与 ID 合规、交叉引用指向真实路径）。
-- 升级条件：首个代码 Feature 落地时升为 `tests-required`，在 `PROJECT_CONTEXT.md` 登记构建 / 测试命令，并同步 `WORKFLOW_PROFILE.md` 与本文件的这一节。
+- 当前 `tests-required`：文档自检 + 可复现构建 / 测试。
+- 构建：`cmake --build build --target MGF_Tests`（配置见仓库根 `CMakeLists.txt`，`ENGINE_ROOT` 指向 minEngine）。
+- 测试：`bin/MGF_Tests.exe`（或 CTest 目标 `MGF_Tests`）。
 
 ## 交接触发条件
 

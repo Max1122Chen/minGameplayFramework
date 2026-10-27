@@ -1,0 +1,6 @@
+{
+  "$schemaVersion": 1,
+  "$engineVersion": "0.0.9",
+  "EditorDefaultSceneName": "default",
+  "GameInstanceClass": "minGameplayFramework::MinGameInstance"
+}

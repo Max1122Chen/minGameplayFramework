@@ -1,0 +1,10 @@
+{
+  "$schemaVersion": 1,
+  "$engineVersion": "0.0.9",
+  "ProjectName": "minGameplayFramework",
+  "ProjectId": {
+    "High": 3117528016487253627,
+    "Low": 9304618233731159481
+  },
+  "ProjectRoot": "D:\\Dev\\GitRepo\\minGameplayFramework"
+}

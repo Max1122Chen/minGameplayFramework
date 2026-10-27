@@ -27,42 +27,65 @@
 - 下一步：
   - 起草 CORE 域第一份设计文档（框架分层与通用契约），评审通过后登记 Feature
 
-## 2026-10-26（L3 设计调研与框架总纲）
+## 2026-10-26（方向调整：设计 v1 归档，改为作者亲手写代码）
 
-- 范围：CORE-F01（框架分层与跨块契约，总纲）；同时登记 CORE-F02 ~ CORE-F07 与 INFRA-F01 为 Planned。
+- 决定：作者不认可第一批设计的具体取向。设计改由作者本人写代码或伪代码表达，agent 以代码为设计输入。
+- 处理：
+  - 七份设计文档（总纲 + 六份 spec）整体移入 docs/deprecated/2026-10-26-CORE-design-v1/，逐份加作废横幅
+  - docs/ai/CORE/ 删除；FEATURE_REGISTRY.md、ACTIVE_WORK.md、PROGRESS_LOG.md 恢复到设计周期开始前的状态
+  - 新增 docs/deprecated/README.md，写明归档件不得作为实现依据或排期来源
+- 不变：AGENTS.md 的协作纪律（提交门禁、注释禁 ID 与章节号、信任层级、复杂度分级）继续有效
+
+## 2026-10-26（固化「代码先行」协作翻转 + Content/Inventory 草稿阅读）
+
+- 范围：协作真相同步；未改业务源码。
 - 完成：
-  - L3 设计调研：minEngine 基建（GameInstance / Subsystem / Tick 时序 / GameplayTag / 事件总线 / DataAsset / 反射 / 序列化 / 模块入口）、minCraft 先例（薄 ItemDef + Fragment 数组 + 双层覆盖、扁平槽位背包、无磁盘存档）、外部经验（Lyra 三段切分、Type Object、图文档、机制/策略分离、事件总线四大坑）、旧项目 CardGameDemo 的小 GAS 教训
-  - 确认 13 条设计决策台账（工程形态、实施顺序、测试形态、文档划分、子系统复用、tag 词汇表、实例状态形态、图节点负载、背包边界、小 GAS 范围、内容数据驱动、注释规范、文档语言）
-  - 撰写总纲 `docs/ai/CORE/CORE-F01_FRAMEWORK_LAYERING_DESIGN.md`：分层与依赖方向、可迁移边界与判据、47 条跨块契约、三级失败策略、子系统真值归属表、tag 词汇表治理、四波实现与验收判据、12 条待决问题
-  - 建立 `docs/ai/CORE/README.md` 域索引
-  - 登记 7 个 CORE Feature + 1 个 INFRA Feature，并在领域码表新增 `INFRA`（理由：工程骨架不属于 gameplay 内核）
-  - 确立评审意见区约定：标题带编号；文档末尾固定「待决问题」+「评审意见（作者填写）」表；作者只写位置与意见，设计者回填判断依据与处理结论（三选一：接受 / 反驳 + 理由 / 转待决问题）；约定同时写入 `docs/ai/templates/DOC_GOVERNANCE.md` 的 Design Review Comment Area 一节
-- 决策要点：
-  - 实例状态统一为「Definition 引用 + tag 键增量属性表 + 显式 fragment 覆盖列表」，不再使用枚举键
-  - 属性一律 base/current 分离且全量重聚合，不做逆运算
-  - 内容只存基值与装配关系，词汇表、片段种类、错误种类、结算规则、schema 版本必须进代码
-  - 全局服务一律做成引擎子系统，不造并行 Manager 单例；PIE 隔离要求无静态可变状态
-  - 不做存档槽与跨会话迁移，只做实例状态快照的自洽往返（登记为技术债关注点）
-- 验证：
-  - 文档自检：占位符扫描无命中（模板占位符、未填写日期、上游模板仓档案引用均无新增）、交叉引用指向真实路径、Feature ID 与文件名大小写合规
-  - 未执行构建与测试：当前验证基线仍为 docs-only
-- 下一步：
-  - 等待作者在第 11 节填写评审意见；设计者回填判断依据与处理结论
-  - CORE-F02 ~ CORE-F07 按总纲契约逐份撰写；INFRA-F01 待 CORE-F01 评审通过后执行，届时验证基线升级为 tests-required
-## 2026-10-26（设计评审周期：六份 spec 成文与跨文档收敛）
+  - 将探索期路径写入 `WORKING_WITH_AI.md`、`PROJECT_CONTEXT.md`、`BOOTSTRAP_DIGEST.md`、`WORKFLOW_PROFILE.md` Effective behavior、`AGENTS.md` §8 / 当前状态、`ACTIVE_WORK.md` 说明
+  - 默认路径：作者伪代码/草稿 → agent 正式化与审批 → Doxygen → 提炼设计文档；空壳设计仍拒绝
+- 作者草稿阅读理解（非正式定稿）：
+  - `GameplayContentDef` + `GameplayContentFragment`：组合替代 ContentDef 继承；推荐 Def=Schema、Instance=可变值
+  - `ItemDef` / 示例 Frag（Stackable、Rarity、Consumable、Placeable、Equipable、Durability）与 `ItemInstance` 属性袋
+  - `IInventoryBase` 薄接口；SlotBased / GridBased 为示例实现；`GridGeometryFragment` 挂在 grid 示例侧
+- 下一步：按作者指定切片正式化代码（include / 反射 / 存储字段等），或继续补伪代码
 
-- 范围：CORE 域七份设计文档（总纲 CORE-F01 + 六份 Feature Spec），无代码。
-- 产出：
-  - CORE-F01 总纲（契约 C1..C48）与六份 spec（K 契约共 160 条），全部含「可检验」判据
-  - 每份文档末尾有编号化待决问题与作者评审意见表（作者只填位置 + 意见）
-- 过程：
-  - 四路只读调研：minEngine 基建事实、minCraft gameplay 先例、外部经验（Lyra / 图模型 / 事件总线）、旧项目 CardGameDemo 的 GAS 复刻
-  - 总纲 R2 修订 12 条（含与引擎事实冲突的 C24、C11 决策状态、C48 属性单一数值类型）
-  - 只读跨文档审查：6 阻塞 / 9 需修 / 5 建议
-  - 七份文档 R3 定点修订；两处作者裁定：实例类归 CORE-F03、去抖键固定 (对象, 通道)
-  - 终验统一了四个跨文档口径：内容引用编码 MGFContentIdRef、去抖键、实例类归属、施加上下文 payload 改名 contentHint
-- 验证：
-  - 章节完整、契约编号连续无重排、无占位符
-  - 引擎符号在六份 spec 的核心层描述中可被 grep 判别（注释规范与禁 ID 遵守）
-- 下一步：
-  - 作者评审七份文档；通过后启动 Wave1（INFRA-F01 工程骨架 + Framework + Content + Attributes）
+## 2026-10-26（注释规范 + CORE-F01 薄设计 Draft）
+
+- 范围：协作规范与 CORE-F01 设计文档；未正式化业务源码。
+- 完成：
+  - 注释节奏改为：正式化先中文 Doxygen（why / 问题 / 迁移）→ 作者审过再补英文 → 最终双语；同步 `AGENTS.md`、`WORKING_WITH_AI.md`、`.cursor/rules/code-comments-no-feature-ids.mdc` 等
+  - 设计文档要求：薄执行参照；详细思想在代码注释（代码即文档）
+  - 新增 `docs/ai/CORE/CORE-F01_GAMEPLAY_CONTENT_AND_INVENTORY_EXAMPLES_DESIGN.md`（Draft）；登记 FEATURE_REGISTRY / ACTIVE_WORK
+  - Item 示例提议：Stone / Apple / IronPickaxe / DirtBlock / IronHelmet；Grid 含旋转 + 合并后 First-Fit 整理
+- 下一步：作者 review 设计文档并拍板 Open Questions，然后按文档 checklist 正式化
+
+## 2026-10-26（正式化代码进行中；Fragment 中文统一为「片段」）
+
+- 废弃 CORE design v1 已提交：`e161773`
+- 作者 `Source/` 草稿保留在暂存区；正式化改动与新增 `.cpp` 保持未暂存，便于 diff 对比
+- 约定：`ItemDef.m_MaxStackCount` 为堆叠唯一真源（无 StackableFragment）；Fragment 中文称「片段」
+- 已铺开：ContentDef/Registry、ItemDef/Instance/示例片段、Weapon/Equipment、三类 Inventory 示例（含 Grid 旋转 Property）
+
+## 2026-10-26（领域拆分 GPCONTENT/ITEM/INVENTORY + 设计对齐）
+
+
+- 范围：按作者反馈改领域与设计；充实伪示例；未正式化编译代码。
+- 决定：
+  - 领域细化：`GPCONTENT` → `ITEM` → `INVENTORY` 递进；作废合并的 `CORE-F01` 稿
+  - 示例不做真实 minEngine DataAsset；用无后缀 `ExampleItemDefs` 等 yaml-like 伪数据
+  - Grid 旋转：`GridGeometryFragment` Grant 到 ItemInstance 的 Property
+  - Workbench/Furnace 等只意思一下，不做 MC 玩法
+- 完成：三份薄设计 + 登记表/ACTIVE_WORK/领域码同步；`ExampleItemDefs` 写入示意关系（含 WeaponFragment 引用独立 WeaponDef）
+- 作者草稿增量已对齐：Content 级 id/name/fragments 存储、Catalog/Registry、Item 常用字段可上 Def、Property 袋为可选设计、Weapon/Equipment 独立 ContentDef
+- 下一步：作者 review 三份 Draft；通过后按递进正式化
+
+## 2026-10-27（GPCONTENT / ITEM / INVENTORY 正式化落地）
+
+- 范围：三域代码正式化 + 薄设计状态同步；不含 GameplayDataGraph / SkillTree。
+- 完成：
+  - `GameplayContentDef` / Fragment / Catalog / Registry；`ItemDef`（maxStack 真源）/ `ItemInstance` / 示例片段；Weapon/Equipment 独立 Def
+  - Inventory：`IInventoryBase` + Slot / Category / Grid 示例（委托事件、缩容整理、Grid 旋转 Property）
+  - `MGF_Tests`（doctest）覆盖 ItemInstance 与三类背包；产品 CMake + Game/Editor 宿主
+  - 薄设计三份 Status → Done；登记表 Done；ACTIVE_WORK 清空该递进
+- 验证：`cmake --build build --target MGF_Tests`；`bin/MGF_Tests.exe` 相关用例通过
+- 验证基线：升为 `tests-required`（见 `WORKFLOW_PROFILE.md` / `PROJECT_CONTEXT.md` / `BOOTSTRAP_DIGEST.md`）
+- 下一步：SkillTree 示例正式化与反射挂接（工作区未纳入本次提交）

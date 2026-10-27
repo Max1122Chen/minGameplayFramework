@@ -1,0 +1,68 @@
+# Example ItemDefs (NOT compiled)
+# yaml-like sketch of Def ↔ Fragment ↔ optional cross-Content refs.
+# Fragment 中文称「片段」。堆叠上限只用 ItemDef.maxStackCount（唯一真源）。
+# Real games may load the same shape from DataAsset / JSON / etc.
+
+items:
+  - name: Stone
+    contentId: 1
+    maxStackCount: 64
+    fragments: []
+
+  - name: Apple
+    contentId: 2
+    maxStackCount: 16
+    fragments:
+      - ConsumableFragment: {}   # presence = can consume; effect hook TBD
+
+  - name: IronPickaxe
+    contentId: 3
+    maxStackCount: 1
+    fragments:
+      - DurabilityFragment:
+          maxDurability: 250     # GrantProperty → Instance current durability
+
+  - name: DirtBlock
+    contentId: 4
+    maxStackCount: 64
+    fragments:
+      - PlaceableFragment: {}
+
+  - name: IronHelmet
+    contentId: 5
+    maxStackCount: 1
+    categoryTag: Item.Armor.Head
+    fragments:
+      - EquipableFragment: {}
+      - RarityFragment: { rarity: Rarity.Uncommon }
+      - DurabilityFragment: { maxDurability: 120 }
+      # optional: EquipmentFragment → equipmentDef: IronHelmetStats
+
+  - name: IronSword
+    contentId: 6
+    maxStackCount: 1
+    fragments:
+      - DurabilityFragment: { maxDurability: 200 }
+      - WeaponFragment:
+          weaponDefName: IronSwordStats   # refs separate WeaponDef, not inheritance
+
+  - name: LargeMedkit
+    contentId: 7
+    maxStackCount: 1
+    fragments:
+      - ConsumableFragment: {}
+      - GridGeometryFragment:       # Inventory grid example only
+          gridWidth: 2
+          gridHeight: 2
+          # GrantProperty → Instance GridRotation (0..3)
+
+# Separate ContentDefs (own catalogs), referenced by Item fragments:
+weaponDefs:
+  - name: IronSwordStats
+    contentId: 1001
+    # damage, grant ability hooks, etc. — sketch only
+
+equipmentDefs:
+  - name: IronHelmetStats
+    contentId: 2001
+    # slot, armor value — sketch only

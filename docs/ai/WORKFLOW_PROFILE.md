@@ -1,6 +1,6 @@
 # Workflow Profile（工作流画像）
 
-Last updated: 2026-10-26
+Last updated: 2026-10-27
 Status: `configured`
 <!-- Allowed status: unconfigured | configured | deferred | default-applied -->
 
@@ -18,20 +18,20 @@ Status: `configured`
 | `agent_role` | `partner` |
 | `docs_language` | `zh` |
 | `docs_topology` | `single-track` |
-| `verification_bar` | `docs-only` |
+| `verification_bar` | `tests-required` |
 | `implementation_discipline` | `on` |
 | `product_truth_path` | `n/a` |
 
 ## Effective behavior（派生行为）
 
 - Challenge skipped workflow：**high** — 对"看起来做完了"的空壳产物、缺失的验收、只停在口号的设计原则，必须明确质疑，不能顺着往下做。
-- Pre-flight（大型 Feature / 重构）：**required** — 先写一句复杂度级别与理由（L0–L3），再决定仪式；L2+ 先设计后编码。
-- Pause for approval：**仅在 L2+ 设计与范围扩张时暂停** — L0/L1 与既定范围内的实施不停顿、不逐条请示。
+- Pre-flight（大型 Feature / 重构）：**required** — 先写一句复杂度级别与理由（L0–L3）。本仓探索期默认**代码 / 伪代码先行**（作者表达 → agent 正式化 → 审批 → 再提炼设计文档）；不把「先出完整 Design Spec」当作默认门禁。若某次明确走设计先行，则 L2+ 仍 Design → Review → Plan。
+- Pause for approval：**作者草稿的正式化与范围扩张时暂停等审批** — L0/L1 与既定范围内的修订可连续推进，但跨边界假设要回放意图。
 - Default explanation depth：**normal** — 给结论、给理由、给证据；不做教学式长篇铺垫，也不省略关键取舍。
 - New docs / progress language：**zh** — 项目自有文档用中文；从模板继承的治理文档、`.cursor` 规则、技能保留英文原文。
-- Engineering DoD bar：当前 **docs-only** — 验收 = 文档自检（占位符扫描、命名与 ID 合规、交叉引用指向真实路径），无构建、无测试。
-  切换条件：**首个代码 Feature 落地时**，本行与上表 `verification_bar` 同时升为 `tests-required`，
-  在 `PROJECT_CONTEXT.md` 登记构建与测试命令，并在 `PROGRESS_LOG.md` 记录这次切换。
+- Engineering DoD bar：当前 **tests-required** — 文档自检 + 可复现构建 / 测试（见 `PROJECT_CONTEXT.md` §5）。
+  已于 2026-10-27 随 GPCONTENT/ITEM/INVENTORY 正式化从 `docs-only` 升档（见 `PROGRESS_LOG.md`）。
+- 探索期真相源：作者正在写的 `Source/` 草稿 + 口头需求；`docs/deprecated/` 下的 CORE design v1 仅供追溯。
 
 ## Non-negotiable constraints（profile 不可关闭）
 

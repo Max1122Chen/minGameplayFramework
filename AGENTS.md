@@ -1,6 +1,6 @@
 # minGameplayFramework
 
-本仓是作者的个人 GameplayFramework 设计与积累。规范文档用中文，源码注释用英文。
+本仓是作者的个人 GameplayFramework 设计与积累。规范文档用中文；源码注释 Doxygen、中文先行供审，通过后补英文，最终中英双语。
 
 ## 1. 项目定位与愿景
 
@@ -11,9 +11,9 @@
 
 ### 当前状态
 
-- 仓库处于初始化完成状态：只有协作与规范文档，**没有代码工程，没有构建系统**。
-- `docs/ai/ACTIVE_WORK.md` 与 `docs/ai/FEATURE_REGISTRY.md` 为空队列骨架，尚未登记任何 Feature。
-- 领域码目前只注册 `CORE`。
+- 协作与规范文档已就绪；minEngine 产品工程已挂上（CMake、`Source/minGameplayFramework/`）。
+- **探索期工作流已翻转**：作者用伪代码 / 草稿代码表达设计；可落薄设计文档作执行参照；详细 why 写在代码注释里（代码即文档）。已归档的 CORE design v1 不得作实现依据（详见 `docs/ai/WORKING_WITH_AI.md`）。
+- 领域码：`CORE`（预留）、`GPCONTENT`、`ITEM`、`INVENTORY`；活跃递进见 `FEATURE_REGISTRY.md`。
 
 ## 2. 目录与文件地图
 
@@ -96,24 +96,25 @@ docs/ai/                       协作真相与工作流记录（高层事实，�
 ### 5.1 代码即文档
 
 - 优先用命名、类型、结构表达意图：名字没表达清楚的地方，先想能不能改名，而不是加注释。
-- 注释只补充**非显而易见**的内容：why、契约、不变量、前置条件、易错点、非常规取舍。
-- 不要求逐字段、逐方法写注释。显而易见的注释是噪音，会让读者跳过所有注释。
+- 公开类型与关键 API 的注释应能讲清：**为什么存在、解决什么问题、迁移到其他引擎时要注意什么**（与薄设计文档分工：文档管范围与清单，注释管就地契约）。
+- 不要求逐字段、逐方法写注释。显而易见的注释是噪音，应删除。
 
-### 5.2 风格：Doxygen
+### 5.2 风格：Doxygen；中文先行，再补英文
 
-- 公开 API（头文件里对外的类型、函数、成员契约）用 `///` 行注释；跨行说明用 `/** ... */` 块。
-- 支持的标签：`@brief`、`@param`、`@return`、`@warning`，必要时 `@note`。
-- 内部实现细节用普通 `//`。
-- 注释语言：**英文**。
+- 公开 API 用 `///`；跨行用 `/** ... */`。标签：`@brief`、`@param`、`@return`、`@warning`，必要时 `@note`。
+- 内部实现用 `//`。
+- **语言节奏**：正式化时先写**中文**契约注释供作者审；作者确认后再补**英文**，最终同一处中英双语各一份（可两行 `@brief` 或中英分段）。
+- 探索期随手中文注可以保留到正式化时再规整语气。
 
 ```cpp
+/// @brief 按句柄解析资源；尚未加载则加载。
 /// @brief Resolves an asset handle to a live instance, loading it if needed.
-/// @param handle Handle previously returned by AssetManager::acquire; must be valid.
-/// @return The instance, or nullptr when the underlying asset failed to load.
-/// @warning Not thread safe; the registry is mutated during load.
+/// @param handle 先前 acquire 返回的句柄，必须有效。 / Handle from acquire; must be valid.
+/// @return 实例；加载失败则为 nullptr。 / The instance, or nullptr on load failure.
+/// @warning 非线程安全。 / Not thread safe.
 Asset* resolve(AssetHandle handle);
 
-// Internal: the cache is keyed by path so two handles to the same file share one load.
+// 内部：按路径缓存，同一文件共享一次加载。
 ```
 
 ### 5.3 严禁出现的内容
@@ -174,8 +175,8 @@ TEST_CASE("child override keeps ancestor default intact") { ... }
 
 ### 领域码
 
-- 当前只注册 **CORE**（框架内核与通用契约）。
-- 其他子系统（ITEM、INVENTORY、ABILITY、ATTR 等）**在首个真实需求出现时**才在 `docs/ai/FEATURE_REGISTRY.md` 追加，不得预置。
+- 已注册：`CORE`（预留）、`GPCONTENT`、`ITEM`、`INVENTORY`。
+- 其他子系统（ABILITY、ATTR 等）**在首个真实需求出现时**才追加，不得预置。
 - 追加规则：在 `FEATURE_REGISTRY.md` 的领域码表中登记；全大写；短；稳定（一旦有其他文档引用就不要改）；不建空桶。
 
 ## 7. 硬约束
@@ -206,19 +207,20 @@ TEST_CASE("child override keeps ancestor default intact") { ... }
 | --- | --- | --- |
 | L0 | 单文件或单点、需求无歧义、可回滚 | 直接做，无需设计文档 |
 | L1 | 2–5 个文件、需求基本清晰 | 简短意图回放，然后实施 |
-| L2 | 跨模块或多交付物、存在隐藏假设 | Design Spec → Design Review → Implementation Plan |
-| L3 | 高不确定、跨子系统、需要探索 | 在 L2 之上增加 readiness 门禁，未通过不得大规模编码 |
+| L2 | 跨模块或多交付物、存在隐藏假设 | 默认：作者草稿 / 伪代码 → 正式代码审批 → 稳定后提炼 Design Spec；若明确设计先行则 Design → Review → Plan |
+| L3 | 高不确定、跨子系统、需要探索 | 在 L2 之上做架构安全检查（所有权 / 契约 / 迁移 / 失败路径）；可用代码探索承担，不强制先写长文；空壳设计仍拒绝 |
 
 - 分级先于行动：拿到任务先写一句“级别 + 理由”。
 - 需求与方案要分开陈述：先把要解决的问题写清，再给候选方案。
 - 设计长文用 `docs/ai/templates/design-spec.template.md`；评审用 `.opencode/skills/design-review/SKILL.md`，结论记为 Ready / Ready with deferred items / Not ready。
-- 流程细节见 `docs/ai/templates/DOC_GOVERNANCE.md`。
+- 流程细节见 `docs/ai/templates/DOC_GOVERNANCE.md`；探索期节奏见 `docs/ai/WORKING_WITH_AI.md`。
 
 ## 9. 验证基线
 
-- 当前 profile 的 `verification_bar` 是 **docs-only**：变更的验证手段为文档自检、占位符扫描、失效链接检查、命名与 ID 合规检查。
-- **首个代码 Feature 落地时**，验证基线升级为 **tests-required**（每个可验证断言都要有对应测试或可复现的验证命令），并在本节同步更新，同时更新 `docs/ai/WORKFLOW_PROFILE.md`。
-- 升级之前的代码类改动同样必须自证：给出实际执行的命令与输出，不接受“看起来对”。
+- 当前 profile 的 `verification_bar` 是 **tests-required**：文档自检 + 可复现构建 / 测试。
+- 构建：`cmake --build build --target MGF_Tests`（根 `CMakeLists.txt`；`ENGINE_ROOT` → minEngine）。
+- 测试：`bin/MGF_Tests.exe`（CTest 名 `MGF_Tests`）。
+- 每个可验证断言应有对应测试或可复现命令；代码改动须给出实际命令与输出，不接受“看起来对”。
 
 ## 10. Agent 适配层扩展规则
 

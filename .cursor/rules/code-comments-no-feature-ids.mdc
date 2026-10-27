@@ -1,5 +1,5 @@
 ---
-description: Source comments carry no Feature/Slice/Bug/ADR/TechDebt IDs, no design section numbers, and no pointers into collaboration docs; public contracts use English Doxygen.
+description: Source comments carry no Feature/Slice/Bug/ADR/TechDebt IDs, no design section numbers, and no pointers into collaboration docs; public contracts use Doxygen (Chinese first, then bilingual).
 alwaysApply: true
 ---
 
@@ -27,13 +27,13 @@ In **source code** (any `.h` / `.hpp` / `.cpp` / `.inl` / test source; future `s
 
 Those identifiers belong in `docs/ai/` only.
 
-## Style: English Doxygen for contracts
+## Style: Doxygen contracts (Chinese first, then bilingual)
 
-- Public API (exported types, functions, members whose contract a caller must know) uses `///` line comments; multi-line blocks use `/** ... */`.
+- Public API uses `///`; multi-line blocks use `/** ... */`.
 - Supported tags: `@brief`, `@param`, `@return`, `@warning`, and `@note` when needed.
 - Internal implementation notes use plain `//`.
-- Comment language is **English**, always — including log strings meant for maintainers.
-- Comment only what the code cannot say by itself: why, contract, invariants, preconditions, hazards, unusual trade-offs.
+- **Language cadence:** formalize with **Chinese** contract comments first for author review; after approval, add **English** so each public contract has both. Log strings for maintainers follow the same cadence.
+- Comment what the code cannot say by itself: why, problem solved, migration notes, invariants, preconditions, hazards, trade-offs.
 
 ## Do not annotate everything
 
